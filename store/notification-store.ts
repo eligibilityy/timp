@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { toast } from 'sonner'
 
 interface NotificationSettings {
   enabled: boolean
@@ -37,7 +38,10 @@ export const useNotificationSettings = create<NotificationSettings>((set) => ({
   setEnabled: async (enabled) => {
     if (enabled) {
       const granted = await requestPermission()
-      if (!granted) return
+      if (!granted) {
+        toast('Notification permission denied. Check your browser settings.')
+        return
+      }
     }
     set({ enabled })
     persist({ enabled })
