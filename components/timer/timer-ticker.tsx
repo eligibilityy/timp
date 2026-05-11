@@ -109,12 +109,42 @@ export function TimerTicker() {
     if (status === 'running') lastNotifRef.current = 0
   }, [status])
 
-  // Tick interval
+  // Dynamic document title
+  useEffect(() => {
+    if (status === 'idle') {
+      document.title = 'timp — focus timer'
+      return
+    }
+    const mins = Math.floor(secondsRemaining / 60)
+    const secs = secondsRemaining % 60
+    const time = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+    const modeLabel = mode === 'work' ? 'Focus' : mode === 'shortBreak' ? 'Break' : 'Long Break'
+    document.title = `${time} — ${modeLabel} | timp`
+  }, [secondsRemaining, status, mode])
+
+  // Drift-correcting tick interval
   useEffect(() => {
     if (status !== 'running') return
-    const id = setInterval(tick, 1000)
-    return () => clearInterval(id)
+    let expected = Date.now() + 1000
+    const step = () => {
+      const drift = Date.now() - expected
+      tick()
+      expected += 1000
+      id = setTimeout(step, Math.max(0, 1000 - drift))
+    }
+    let id = setTimeout(step, 1000)
+    return () => clearTimeout(id)
   }, [status, tick])
+
+  // Sync timer when tab becomes visible again
+  const syncTime = useTimerStore((s) => s.syncTime)
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') syncTime()
+    }
+    document.addEventListener('visibilitychange', handleVisibility)
+    return () => document.removeEventListener('visibilitychange', handleVisibility)
+  }, [syncTime])
 
   return toast ? (
     <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] animate-in fade-in slide-in-from-top-2 duration-200">

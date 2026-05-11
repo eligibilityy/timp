@@ -21,6 +21,7 @@ interface TimerState {
   sessionTitle: string
   sessionTags: string[]
   settings: TimerSettings
+  intervalStartedAt: number | null
 
   start: () => void
   pause: () => void
@@ -29,6 +30,7 @@ interface TimerState {
   stop: () => void
   reset: () => void
   tick: () => void
+  syncTime: () => void
   setIntent: (title: string, tags: string[]) => void
   updateSettings: (settings: Partial<TimerSettings>) => void
 }
@@ -70,6 +72,7 @@ export const useTimerStore = create<TimerState>((set, get) => ({
   sessionTitle: '',
   sessionTags: [],
   settings: DEFAULT_SETTINGS,
+  intervalStartedAt: null,
 
   start: () => {
     const { mode, settings } = get()
@@ -77,11 +80,12 @@ export const useTimerStore = create<TimerState>((set, get) => ({
       status: 'running',
       secondsRemaining: getDuration(mode, settings),
       sessionStartedAt: get().sessionStartedAt || new Date().toISOString(),
+      intervalStartedAt: Date.now(),
     })
   },
 
-  pause: () => set({ status: 'paused' }),
-  resume: () => set({ status: 'running' }),
+  pause: () => set({ status: 'paused', intervalStartedAt: null }),
+  resume: () => set({ status: 'running', intervalStartedAt: Date.now() }),
   stop: () => set({ status: 'completed' }),
 
   skip: () => {
@@ -129,6 +133,27 @@ export const useTimerStore = create<TimerState>((set, get) => ({
   },
 
   setIntent: (title, tags) => set({ sessionTitle: title, sessionTags: tags }),
+
+  syncTime: () => {
+    const { status, intervalStartedAt, secondsRemaining, mode, currentCycle, settings } = get()
+    if (status !== 'running' || !intervalStartedAt) return
+    const elapsed = Math.floor((Date.now() - intervalStartedAt) / 1000)
+    const corrected = Math.max(0, getDuration(mode, settings) - elapsed)
+    if (corrected <= 0) {
+      // Timer should have ended while backgrounded
+      const nextMode = getNextMode(mode, currentCycle, settings)
+      const nextCycle = mode !== 'work' ? currentCycle + 1 : currentCycle
+      set({
+        mode: nextMode,
+        secondsRemaining: getDuration(nextMode, settings),
+        currentCycle: nextCycle,
+        status: shouldAutoStart(nextMode, settings) ? 'running' : 'paused',
+        intervalStartedAt: shouldAutoStart(nextMode, settings) ? Date.now() : null,
+      })
+    } else if (Math.abs(corrected - secondsRemaining) > 2) {
+      set({ secondsRemaining: corrected })
+    }
+  },
 
   updateSettings: (newSettings) => {
     const settings = { ...get().settings, ...newSettings }
