@@ -4,7 +4,7 @@ import { useEffect, useRef, useCallback, useState } from 'react'
 import { useTimerStore } from '@/store/timer-store'
 import { useSoundSettings } from '@/store/sound-store'
 import { useNotificationSettings } from '@/store/notification-store'
-import { defineSound } from '@web-kits/audio'
+import { defineSound, defineSequence } from '@web-kits/audio'
 import { success, notification, warning, error } from '@/.web-kits/crisp'
 import type { SoundDefinition } from '@web-kits/audio'
 
@@ -30,7 +30,22 @@ export function TimerTicker() {
   const playAlarm = useCallback(() => {
     const def = ALARM_SOUNDS[alarmSound] ?? success
     const play = defineSound(def)
-    play({ volume: alarmVolume })
+    // 3 bursts of 4 beeps: burst at 0s, 3s, 6s
+    const steps = [
+      { sound: play, at: 0 },
+      { sound: play, at: 0.4 },
+      { sound: play, at: 0.8 },
+      { sound: play, at: 1.2 },
+      { sound: play, at: 3.0 },
+      { sound: play, at: 3.4 },
+      { sound: play, at: 3.8 },
+      { sound: play, at: 4.2 },
+      { sound: play, at: 6.0 },
+      { sound: play, at: 6.4 },
+      { sound: play, at: 6.8 },
+      { sound: play, at: 7.2 },
+    ]
+    defineSequence(steps)({ volume: alarmVolume })
   }, [alarmSound, alarmVolume])
 
   const showToast = useCallback((msg: string) => {
