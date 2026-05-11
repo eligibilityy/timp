@@ -90,7 +90,7 @@ export default async function HistoryPage() {
                       <div className="absolute -left-[31px] top-2 size-2.5 rounded-full bg-foreground/20 group-hover:bg-foreground/60 transition-colors ring-2 ring-background" />
 
                       {/* Card */}
-                      <div className="rounded-xl border border-border/50 bg-card/50 p-4 hover:bg-card hover:border-border transition-colors">
+                      <div className="rounded-2xl bg-secondary shadow-sm p-4 hover:shadow-md transition-shadow">
                         <div className="flex items-start justify-between gap-3">
                           <div className="space-y-1 min-w-0">
                             <p className="font-medium truncate">

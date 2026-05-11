@@ -93,13 +93,14 @@ export default function AnalyticsPage() {
       // Tag distribution
       const tagMap: Record<string, { minutes: number; color: string }> = {};
       for (const s of weekSessions) {
-        const tags = (
-          s as unknown as {
-            session_tags: {
-              tags: { name: string; color: string | null } | null;
-            }[];
-          }
-        ).session_tags ?? [];
+        const tags =
+          (
+            s as unknown as {
+              session_tags: {
+                tags: { name: string; color: string | null } | null;
+              }[];
+            }
+          ).session_tags ?? [];
         for (const st of tags) {
           const tag = st.tags;
           if (!tag) continue;
@@ -160,7 +161,7 @@ export default function AnalyticsPage() {
       {weekData.length > 0 && (
         <div className="grid gap-6 md:grid-cols-2">
           {/* Weekly bar chart */}
-          <div className="rounded-xl border border-border/50 bg-card/50 p-5 space-y-4">
+          <div className="rounded-2xl bg-secondary shadow-sm p-4 space-y-4">
             <div className="flex items-baseline justify-between">
               <h2 className="text-sm font-medium">This week</h2>
               <span className="text-xs text-muted-foreground tabular-nums">
@@ -199,7 +200,7 @@ export default function AnalyticsPage() {
 
           {/* Tag distribution */}
           {tagData.length > 0 && (
-            <div className="rounded-xl border border-border/50 bg-card/50 p-5 space-y-4">
+            <div className="rounded-2xl bg-secondary shadow-sm p-4 space-y-4">
               <h2 className="text-sm font-medium">Focus by category</h2>
               <div className="space-y-3">
                 {tagData.map((tag) => (
@@ -251,7 +252,7 @@ function StatCard({
   value: string;
 }) {
   return (
-    <div className="rounded-xl border border-border/50 bg-card/50 p-4 space-y-2">
+    <div className="rounded-2xl bg-secondary shadow-sm p-4 space-y-2">
       <div className="flex items-center gap-1.5 text-muted-foreground">
         {icon}
         <span className="text-xs">{label}</span>
