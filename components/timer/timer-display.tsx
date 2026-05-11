@@ -16,7 +16,7 @@ const modeColors: Record<TimerMode, string> = {
   longBreak: "text-blue-500",
 };
 
-export function TimerDisplay() {
+export function TimerDisplay({ focused = false }: { focused?: boolean }) {
   const { secondsRemaining, mode, currentCycle, settings, status } =
     useTimerStore();
 
@@ -26,17 +26,22 @@ export function TimerDisplay() {
 
   const total = getDuration(mode, settings);
   const progress = total > 0 ? 1 - secondsRemaining / total : 0;
-  const radius = 120;
+  const radius = 145;
+  const size = 320;
+  const center = size / 2;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference * (1 - progress);
 
   return (
-    <div className="flex flex-col items-center gap-3">
+    <div
+      className="flex flex-col items-center gap-3 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
+      style={{ transform: focused ? "scale(1.15)" : "scale(1)" }}
+    >
       <div className="relative flex items-center justify-center">
-        <svg width="260" height="260" className="-rotate-90">
+        <svg width={size} height={size} className="-rotate-90">
           <circle
-            cx="130"
-            cy="130"
+            cx={center}
+            cy={center}
             r={radius}
             fill="none"
             stroke="currentColor"
@@ -45,8 +50,8 @@ export function TimerDisplay() {
           />
           {status !== "idle" && (
             <circle
-              cx="130"
-              cy="130"
+              cx={center}
+              cy={center}
               r={radius}
               fill="none"
               stroke="currentColor"
@@ -67,13 +72,13 @@ export function TimerDisplay() {
             stagger={0.05}
             animation="smooth"
             className={cn(
-              "text-5xl font-semibold tabular-nums tracking-tight text-center transition-colors",
+              "text-6xl font-semibold tabular-nums tracking-tight text-center transition-colors mt-2",
               modeColors[mode],
             )}
           >
             {time}
           </Calligraph>
-          <span className="mt-2 text-sm text-muted-foreground">
+          <span className="mt-1 text-sm text-muted-foreground">
             {modeLabels[mode]}.
           </span>
         </div>
