@@ -33,31 +33,40 @@ export function TopNav() {
           <Link
             key={href}
             href={href}
+            title={label}
             className={cn(
-              'flex items-center gap-1.5 rounded-full px-3 py-2 text-xs transition-colors',
+              'relative group rounded-full p-2.5 transition-colors',
               pathname === href
                 ? 'bg-foreground text-background'
                 : 'text-muted-foreground hover:text-foreground'
             )}
           >
             <Icon className="size-4" />
-            <span className="hidden sm:inline">{label}</span>
+            <span className="absolute -top-8 left-1/2 -translate-x-1/2 rounded-md bg-foreground px-2 py-1 text-[10px] text-background opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none whitespace-nowrap">
+              {label}
+            </span>
           </Link>
         ))}
         <div className="mx-1 h-4 w-px bg-border/50" />
         <button
           onClick={toggle}
-          className="rounded-full p-2 text-muted-foreground transition-colors hover:text-foreground"
-          aria-label="Toggle theme"
+          title={theme === 'light' ? 'Dark mode' : 'Light mode'}
+          className="relative group rounded-full p-2.5 text-muted-foreground transition-colors hover:text-foreground"
         >
           {theme === 'light' ? <Moon className="size-4" /> : <Sun className="size-4" />}
+          <span className="absolute -top-8 left-1/2 -translate-x-1/2 rounded-md bg-foreground px-2 py-1 text-[10px] text-background opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none whitespace-nowrap">
+            {theme === 'light' ? 'Dark mode' : 'Light mode'}
+          </span>
         </button>
         <button
           onClick={handleSignOut}
-          className="rounded-full p-2 text-muted-foreground transition-colors hover:text-foreground"
-          aria-label="Sign out"
+          title="Sign out"
+          className="relative group rounded-full p-2.5 text-muted-foreground transition-colors hover:text-foreground"
         >
           <LogOut className="size-4" />
+          <span className="absolute -top-8 left-1/2 -translate-x-1/2 rounded-md bg-foreground px-2 py-1 text-[10px] text-background opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none whitespace-nowrap">
+            Sign out
+          </span>
         </button>
       </div>
     </nav>
