@@ -5,7 +5,7 @@ import { useTimerStore } from "@/store/timer-store";
 import { useSoundSettings } from "@/store/sound-store";
 import { useNotificationSettings } from "@/store/notification-store";
 import { useSound } from "@web-kits/audio/react";
-import { tap, success, notification, warning, error } from "@/.web-kits/crisp";
+import { tap, success, notification } from "@/.web-kits/crisp";
 import { SoundButton } from "@/components/ui/sound-button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -24,8 +24,6 @@ const ALARM_OPTIONS: { key: string; label: string; sound: SoundDefinition }[] =
   [
     { key: "success", label: "Success", sound: success },
     { key: "notification", label: "Notification", sound: notification },
-    { key: "warning", label: "Warning", sound: warning },
-    { key: "error", label: "Error", sound: error },
   ];
 
 interface SettingsModalProps {
@@ -89,7 +87,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
         <DialogHeader>
           <DialogTitle>Settings</DialogTitle>
         </DialogHeader>
-        <div className="overflow-y-auto overflow-x-hidden space-y-6 p-2 -m-2">
+        <div className="overflow-y-auto space-y-6 p-2 -m-2">
           {/* Timer */}
           <section className="space-y-3">
             <SectionLabel>Timer</SectionLabel>
