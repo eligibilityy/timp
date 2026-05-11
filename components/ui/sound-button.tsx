@@ -2,19 +2,25 @@
 
 import { forwardRef } from 'react'
 import { Button } from '@/components/ui/button'
-import { useAppSounds } from '@/hooks/use-app-sounds'
+import { useSound } from '@web-kits/audio/react'
+import { click as defaultSound } from '@/.web-kits/crisp'
+import type { SoundDefinition } from '@web-kits/audio'
 
 type ButtonProps = React.ComponentProps<typeof Button>
 
-export const SoundButton = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ onClick, ...props }, ref) => {
-    const { click } = useAppSounds()
+interface SoundButtonProps extends ButtonProps {
+  sound?: SoundDefinition
+}
+
+export const SoundButton = forwardRef<HTMLButtonElement, SoundButtonProps>(
+  ({ onClick, sound = defaultSound, ...props }, ref) => {
+    const playSound = useSound(sound)
 
     return (
       <Button
         ref={ref}
         onClick={(e) => {
-          click()
+          playSound()
           onClick?.(e)
         }}
         {...props}
