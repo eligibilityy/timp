@@ -21,7 +21,7 @@ interface TimerState {
   sessionTitle: string
   sessionTags: string[]
   settings: TimerSettings
-  intervalStartedAt: number | null
+  endsAt: number | null
 
   start: () => void
   pause: () => void
@@ -42,6 +42,17 @@ const DEFAULT_SETTINGS: TimerSettings = {
   cyclesBeforeLongBreak: 4,
   autoStartBreaks: true,
   autoStartTimers: true,
+}
+
+const STORAGE_KEY = 'timer-settings'
+
+function getStoredSettings(): TimerSettings {
+  if (typeof window === 'undefined') return DEFAULT_SETTINGS
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (raw) return { ...DEFAULT_SETTINGS, ...JSON.parse(raw) }
+  } catch {}
+  return DEFAULT_SETTINGS
 }
 
 function getDuration(mode: TimerMode, settings: TimerSettings): number {
@@ -72,32 +83,45 @@ export const useTimerStore = create<TimerState>((set, get) => ({
   sessionTitle: '',
   sessionTags: [],
   settings: DEFAULT_SETTINGS,
-  intervalStartedAt: null,
+  endsAt: null,
 
   start: () => {
     const { mode, settings } = get()
+    const duration = getDuration(mode, settings)
     set({
       status: 'running',
-      secondsRemaining: getDuration(mode, settings),
+      secondsRemaining: duration,
       sessionStartedAt: get().sessionStartedAt || new Date().toISOString(),
-      intervalStartedAt: Date.now(),
+      endsAt: Date.now() + duration * 1000,
     })
   },
 
-  pause: () => set({ status: 'paused', intervalStartedAt: null }),
-  resume: () => set({ status: 'running', intervalStartedAt: Date.now() }),
-  stop: () => set({ status: 'completed' }),
+  pause: () => {
+    const { endsAt } = get()
+    const remaining = endsAt ? Math.max(0, Math.round((endsAt - Date.now()) / 1000)) : get().secondsRemaining
+    set({ status: 'paused', endsAt: null, secondsRemaining: remaining })
+  },
+
+  resume: () => {
+    const { secondsRemaining } = get()
+    set({ status: 'running', endsAt: Date.now() + secondsRemaining * 1000 })
+  },
+
+  stop: () => set({ status: 'completed', endsAt: null }),
 
   skip: () => {
     const { mode, currentCycle, settings } = get()
     const nextMode = getNextMode(mode, currentCycle, settings)
     const nextCycle = mode !== 'work' ? currentCycle + 1 : currentCycle
+    const autoStart = shouldAutoStart(nextMode, settings)
+    const nextDuration = getDuration(nextMode, settings)
 
     set({
       mode: nextMode,
-      status: shouldAutoStart(nextMode, settings) ? 'running' : 'paused',
-      secondsRemaining: getDuration(nextMode, settings),
+      status: autoStart ? 'running' : 'paused',
+      secondsRemaining: nextDuration,
       currentCycle: nextCycle,
+      endsAt: autoStart ? Date.now() + nextDuration * 1000 : null,
     })
   },
 
@@ -111,55 +135,63 @@ export const useTimerStore = create<TimerState>((set, get) => ({
       sessionStartedAt: null,
       sessionTitle: '',
       sessionTags: [],
+      endsAt: null,
     })
   },
 
   tick: () => {
-    const { secondsRemaining, mode, currentCycle, settings } = get()
+    const { endsAt, mode, currentCycle, settings } = get()
+    if (!endsAt) return
 
-    if (secondsRemaining <= 1) {
+    const remaining = Math.round((endsAt - Date.now()) / 1000)
+
+    if (remaining <= 0) {
       const nextMode = getNextMode(mode, currentCycle, settings)
       const nextCycle = mode !== 'work' ? currentCycle + 1 : currentCycle
+      const autoStart = shouldAutoStart(nextMode, settings)
+      const nextDuration = getDuration(nextMode, settings)
 
       set({
         mode: nextMode,
-        secondsRemaining: getDuration(nextMode, settings),
+        secondsRemaining: nextDuration,
         currentCycle: nextCycle,
-        status: shouldAutoStart(nextMode, settings) ? 'running' : 'paused',
+        status: autoStart ? 'running' : 'paused',
+        endsAt: autoStart ? Date.now() + nextDuration * 1000 : null,
       })
     } else {
-      set({ secondsRemaining: secondsRemaining - 1 })
+      set({ secondsRemaining: remaining })
     }
+  },
+
+  syncTime: () => {
+    const { status, endsAt } = get()
+    if (status !== 'running' || !endsAt) return
+    // Just call tick — it derives everything from endsAt
+    get().tick()
   },
 
   setIntent: (title, tags) => set({ sessionTitle: title, sessionTags: tags }),
 
-  syncTime: () => {
-    const { status, intervalStartedAt, secondsRemaining, mode, currentCycle, settings } = get()
-    if (status !== 'running' || !intervalStartedAt) return
-    const elapsed = Math.floor((Date.now() - intervalStartedAt) / 1000)
-    const corrected = Math.max(0, getDuration(mode, settings) - elapsed)
-    if (corrected <= 0) {
-      // Timer should have ended while backgrounded
-      const nextMode = getNextMode(mode, currentCycle, settings)
-      const nextCycle = mode !== 'work' ? currentCycle + 1 : currentCycle
-      set({
-        mode: nextMode,
-        secondsRemaining: getDuration(nextMode, settings),
-        currentCycle: nextCycle,
-        status: shouldAutoStart(nextMode, settings) ? 'running' : 'paused',
-        intervalStartedAt: shouldAutoStart(nextMode, settings) ? Date.now() : null,
-      })
-    } else if (Math.abs(corrected - secondsRemaining) > 2) {
-      set({ secondsRemaining: corrected })
-    }
-  },
-
   updateSettings: (newSettings) => {
     const settings = { ...get().settings, ...newSettings }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings))
     set({
       settings,
       secondsRemaining: get().status === 'idle' ? getDuration(get().mode, settings) : get().secondsRemaining,
     })
   },
 }))
+
+// Hydrate settings from localStorage after React hydration
+export function hydrateTimerSettings() {
+  const stored = getStoredSettings()
+  const state = useTimerStore.getState()
+  if (state.status === 'idle') {
+    useTimerStore.setState({
+      settings: stored,
+      secondsRemaining: getDuration(state.mode, stored),
+    })
+  } else {
+    useTimerStore.setState({ settings: stored })
+  }
+}
