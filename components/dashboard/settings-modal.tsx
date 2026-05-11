@@ -20,12 +20,13 @@ import {
 
 import type { SoundDefinition } from "@web-kits/audio";
 
-const ALARM_OPTIONS: { key: string; label: string; sound: SoundDefinition }[] = [
-  { key: "success", label: "Success", sound: success },
-  { key: "notification", label: "Notification", sound: notification },
-  { key: "warning", label: "Warning", sound: warning },
-  { key: "error", label: "Error", sound: error },
-];
+const ALARM_OPTIONS: { key: string; label: string; sound: SoundDefinition }[] =
+  [
+    { key: "success", label: "Success", sound: success },
+    { key: "notification", label: "Notification", sound: notification },
+    { key: "warning", label: "Warning", sound: warning },
+    { key: "error", label: "Error", sound: error },
+  ];
 
 interface SettingsModalProps {
   open: boolean;
@@ -39,17 +40,25 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
 
   // Local state for timer settings (commit on save)
   const [work, setWork] = useState(settings.workDuration / 60);
-  const [shortBreak, setShortBreak] = useState(settings.shortBreakDuration / 60);
+  const [shortBreak, setShortBreak] = useState(
+    settings.shortBreakDuration / 60,
+  );
   const [longBreak, setLongBreak] = useState(settings.longBreakDuration / 60);
   const [cycles, setCycles] = useState(settings.cyclesBeforeLongBreak);
-  const [autoStartBreaks, setAutoStartBreaks] = useState(settings.autoStartBreaks);
-  const [autoStartTimers, setAutoStartTimers] = useState(settings.autoStartTimers);
+  const [autoStartBreaks, setAutoStartBreaks] = useState(
+    settings.autoStartBreaks,
+  );
+  const [autoStartTimers, setAutoStartTimers] = useState(
+    settings.autoStartTimers,
+  );
 
   // Sound tick for slider
   const playTick = useSound(tap);
 
   // Alarm preview
-  const alarmDef = ALARM_OPTIONS.find((o) => o.key === soundSettings.alarmSound)?.sound ?? success;
+  const alarmDef =
+    ALARM_OPTIONS.find((o) => o.key === soundSettings.alarmSound)?.sound ??
+    success;
   const playAlarmPreview = useSound(alarmDef);
 
   // Throttle slider tick
@@ -80,29 +89,55 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
         <DialogHeader>
           <DialogTitle>Settings</DialogTitle>
         </DialogHeader>
-        <div className="max-h-[70vh] overflow-y-auto overflow-x-hidden space-y-6 pr-1">
+        <div className="overflow-y-auto overflow-x-hidden space-y-6 p-2 -m-2">
           {/* Timer */}
           <section className="space-y-3">
             <SectionLabel>Timer</SectionLabel>
             <div className="grid grid-cols-2 gap-2">
               <Field label="Focus (min)">
-                <Input type="number" min={1} value={work} onChange={(e) => setWork(Number(e.target.value))} />
+                <Input
+                  type="number"
+                  min={1}
+                  value={work}
+                  onChange={(e) => setWork(Number(e.target.value))}
+                />
               </Field>
               <Field label="Short break (min)">
-                <Input type="number" min={1} value={shortBreak} onChange={(e) => setShortBreak(Number(e.target.value))} />
+                <Input
+                  type="number"
+                  min={1}
+                  value={shortBreak}
+                  onChange={(e) => setShortBreak(Number(e.target.value))}
+                />
               </Field>
               <Field label="Long break (min)">
-                <Input type="number" min={1} value={longBreak} onChange={(e) => setLongBreak(Number(e.target.value))} />
+                <Input
+                  type="number"
+                  min={1}
+                  value={longBreak}
+                  onChange={(e) => setLongBreak(Number(e.target.value))}
+                />
               </Field>
               <Field label="Intervals">
-                <Input type="number" min={1} value={cycles} onChange={(e) => setCycles(Number(e.target.value))} />
+                <Input
+                  type="number"
+                  min={1}
+                  value={cycles}
+                  onChange={(e) => setCycles(Number(e.target.value))}
+                />
               </Field>
             </div>
             <Row label="Auto-start breaks">
-              <Switch checked={autoStartBreaks} onCheckedChange={setAutoStartBreaks} />
+              <Switch
+                checked={autoStartBreaks}
+                onCheckedChange={setAutoStartBreaks}
+              />
             </Row>
             <Row label="Auto-start timers">
-              <Switch checked={autoStartTimers} onCheckedChange={setAutoStartTimers} />
+              <Switch
+                checked={autoStartTimers}
+                onCheckedChange={setAutoStartTimers}
+              />
             </Row>
           </section>
 
@@ -110,7 +145,10 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
           <section className="space-y-3">
             <SectionLabel>Sound</SectionLabel>
             <Row label="UI sounds">
-              <Switch checked={soundSettings.enabled} onCheckedChange={soundSettings.setEnabled} />
+              <Switch
+                checked={soundSettings.enabled}
+                onCheckedChange={soundSettings.setEnabled}
+              />
             </Row>
             {soundSettings.enabled && (
               <div className="space-y-1.5">
@@ -161,7 +199,9 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
             </div>
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">Alarm volume</span>
+                <span className="text-xs text-muted-foreground">
+                  Alarm volume
+                </span>
                 <span className="text-xs text-muted-foreground tabular-nums">
                   {Math.round(soundSettings.alarmVolume * 100)}%
                 </span>
@@ -191,7 +231,9 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
             {notifSettings.enabled && (
               <>
                 <div className="space-y-1.5">
-                  <span className="text-xs text-muted-foreground">Remind me</span>
+                  <span className="text-xs text-muted-foreground">
+                    Remind me
+                  </span>
                   <div className="flex items-center gap-2">
                     <div className="flex gap-1">
                       {(["every", "last"] as const).map((mode) => (
@@ -212,7 +254,9 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                       type="number"
                       min={1}
                       value={notifSettings.reminderMinutes}
-                      onChange={(e) => notifSettings.setReminderMinutes(Number(e.target.value))}
+                      onChange={(e) =>
+                        notifSettings.setReminderMinutes(Number(e.target.value))
+                      }
                       className="w-16"
                     />
                     <span className="text-xs text-muted-foreground">min</span>
@@ -243,7 +287,13 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Row({ label, children }: { label: string; children: React.ReactNode }) {
+function Row({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <label className="flex items-center justify-between">
       <span className="text-sm">{label}</span>
@@ -252,7 +302,13 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="space-y-1.5">
       <span className="text-xs text-muted-foreground">{label}</span>
