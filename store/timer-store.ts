@@ -8,7 +8,8 @@ interface TimerSettings {
   shortBreakDuration: number
   longBreakDuration: number
   cyclesBeforeLongBreak: number
-  autoAdvance: boolean
+  autoStartBreaks: boolean
+  autoStartTimers: boolean
 }
 
 interface TimerState {
@@ -37,7 +38,8 @@ const DEFAULT_SETTINGS: TimerSettings = {
   shortBreakDuration: 5 * 60,
   longBreakDuration: 15 * 60,
   cyclesBeforeLongBreak: 4,
-  autoAdvance: true,
+  autoStartBreaks: true,
+  autoStartTimers: true,
 }
 
 function getDuration(mode: TimerMode, settings: TimerSettings): number {
@@ -50,11 +52,13 @@ function getDuration(mode: TimerMode, settings: TimerSettings): number {
 
 function getNextMode(mode: TimerMode, currentCycle: number, settings: TimerSettings): TimerMode {
   if (mode === 'work') {
-    // After every N work cycles, long break. Otherwise short break.
     return currentCycle % settings.cyclesBeforeLongBreak === 0 ? 'longBreak' : 'shortBreak'
   }
-  // After any break, go back to work
   return 'work'
+}
+
+function shouldAutoStart(nextMode: TimerMode, settings: TimerSettings): boolean {
+  return nextMode === 'work' ? settings.autoStartTimers : settings.autoStartBreaks
 }
 
 export const useTimerStore = create<TimerState>((set, get) => ({
@@ -78,8 +82,6 @@ export const useTimerStore = create<TimerState>((set, get) => ({
 
   pause: () => set({ status: 'paused' }),
   resume: () => set({ status: 'running' }),
-
-  // Stop ends the session immediately — triggers reflection
   stop: () => set({ status: 'completed' }),
 
   skip: () => {
@@ -89,7 +91,7 @@ export const useTimerStore = create<TimerState>((set, get) => ({
 
     set({
       mode: nextMode,
-      status: settings.autoAdvance ? 'running' : 'paused',
+      status: shouldAutoStart(nextMode, settings) ? 'running' : 'paused',
       secondsRemaining: getDuration(nextMode, settings),
       currentCycle: nextCycle,
     })
@@ -112,7 +114,6 @@ export const useTimerStore = create<TimerState>((set, get) => ({
     const { secondsRemaining, mode, currentCycle, settings } = get()
 
     if (secondsRemaining <= 1) {
-      // Timer reached zero — advance to next interval (unlimited)
       const nextMode = getNextMode(mode, currentCycle, settings)
       const nextCycle = mode !== 'work' ? currentCycle + 1 : currentCycle
 
@@ -120,7 +121,7 @@ export const useTimerStore = create<TimerState>((set, get) => ({
         mode: nextMode,
         secondsRemaining: getDuration(nextMode, settings),
         currentCycle: nextCycle,
-        status: settings.autoAdvance ? 'running' : 'paused',
+        status: shouldAutoStart(nextMode, settings) ? 'running' : 'paused',
       })
     } else {
       set({ secondsRemaining: secondsRemaining - 1 })
