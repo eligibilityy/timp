@@ -1,54 +1,32 @@
 # timp
 
-A calm focus timer + reflection journal that visually tracks meaningful work over time.
+timp is a calm focus timer and reflection journal that visually tracks meaningful work over time.
 
-> GitHub contributions, but for your actual work and growth.
+![timp's timer page](image.png)
 
-## Features
+## Core Features
 
-- 🍅 Pomodoro-style timer with customizable intervals
-- 📝 Session reflections and journaling
-- 🔥 Contribution heatmap showing focus consistency
-- 📊 Weekly and monthly analytics
-- 🏷️ Tag-based session categorization
-- 🔐 Google & GitHub authentication
+- Pomodoro-style timer with customizable intervals
+- Session reflections and journaling
+- Contribution heatmap showing focus consistency
+- Weekly and monthly analytics
+- Tag-based session categorization
 
-## Tech Stack
+## Screenshots
 
-- **Framework:** Next.js (App Router)
-- **Language:** TypeScript
-- **Styling:** Tailwind CSS + shadcn/ui
-- **Backend:** Supabase (PostgreSQL, Auth, RLS)
-- **State:** Zustand
-- **Animations:** Framer Motion
-- **Charts:** Nivo
+![alt text](image-2.png)
+![alt text](image-3.png)
+![alt text](image-1.png)
 
-## Getting Started
+## Credits
 
-```bash
-# Clone the repo
-git clone https://github.com/your-username/timp.git
-cd timp
+### Acknowledgements
 
-# Install dependencies
-npm install
+timp was created because I wanted something like [Pomofocus](https://pomofocus.io/) by [Yuya Uzu](https://uzu.works/) but with UI like... the way  design I guess
 
-# Set up environment variables
-cp .env.local.example .env.local
-# Fill in your Supabase credentials
+### Connect
 
-# Run the dev server
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) to see the app.
-
-## Environment Variables
-
-Copy `.env.local.example` to `.env.local` and fill in your Supabase project credentials:
-
-- `NEXT_PUBLIC_SUPABASE_URL` — Your Supabase project URL
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY` — Your Supabase anon/public key
+[Portfolio](https://yiliya.studio/) · [@yiliya_iya](https://x.com/yiliya_iya) on X
 
 ## License
 
