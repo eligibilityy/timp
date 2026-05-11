@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent } from '@/components/ui/card'
+import { ContributionGraph } from '@/components/heatmap/contribution-graph'
 
 interface DayData { day: string; label: string; minutes: number }
 interface TagData { name: string; minutes: number; color: string }
@@ -11,30 +12,44 @@ export default function AnalyticsPage() {
   const [weekData, setWeekData] = useState<DayData[]>([])
   const [tagData, setTagData] = useState<TagData[]>([])
   const [totalWeek, setTotalWeek] = useState(0)
+  const [heatmapData, setHeatmapData] = useState<Record<string, number>>({})
 
   useEffect(() => {
     async function load() {
       const supabase = createClient()
       const now = new Date()
-      const weekStart = new Date(now)
-      weekStart.setDate(weekStart.getDate() - 6)
-      weekStart.setHours(0, 0, 0, 0)
+      const yearAgo = new Date(now)
+      yearAgo.setFullYear(yearAgo.getFullYear() - 1)
 
       const { data: sessions } = await supabase
         .from('sessions')
         .select('duration_seconds, started_at, session_tags(tag_id, tags(name, color))')
-        .gte('started_at', weekStart.toISOString())
+        .gte('started_at', yearAgo.toISOString())
 
       if (!sessions) return
 
-      // Weekly bar chart data
+      // Heatmap data (full year)
+      const byDay: Record<string, number> = {}
+      for (const s of sessions) {
+        if (!s.started_at) continue
+        const day = s.started_at.split('T')[0]
+        byDay[day] = (byDay[day] || 0) + Math.round(s.duration_seconds / 60)
+      }
+      setHeatmapData(byDay)
+
+      // Weekly bar chart (last 7 days)
+      const weekStart = new Date(now)
+      weekStart.setDate(weekStart.getDate() - 6)
+      weekStart.setHours(0, 0, 0, 0)
+      const weekSessions = sessions.filter((s) => s.started_at && new Date(s.started_at) >= weekStart)
+
       const days: DayData[] = []
       const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
       for (let i = 6; i >= 0; i--) {
         const d = new Date(now)
         d.setDate(d.getDate() - i)
         const key = d.toISOString().split('T')[0]
-        const mins = sessions
+        const mins = weekSessions
           .filter((s) => s.started_at?.startsWith(key))
           .reduce((sum, s) => sum + Math.round(s.duration_seconds / 60), 0)
         days.push({ day: key, label: dayNames[d.getDay()], minutes: mins })
@@ -44,7 +59,7 @@ export default function AnalyticsPage() {
 
       // Tag distribution
       const tagMap: Record<string, { minutes: number; color: string }> = {}
-      for (const s of sessions) {
+      for (const s of weekSessions) {
         const tags = (s as any).session_tags ?? []
         for (const st of tags) {
           const tag = st.tags
@@ -68,17 +83,20 @@ export default function AnalyticsPage() {
     <div className="space-y-8">
       <h1 className="text-2xl font-semibold tracking-tight">Analytics</h1>
 
-      {weekData.length === 0 ? (
-        <p className="text-muted-foreground">
-          Complete some focus sessions to see your analytics here.
-        </p>
-      ) : (
+      {/* Contribution Graph */}
+      <div className="space-y-3">
+        <h2 className="text-sm font-medium text-muted-foreground">Contributions</h2>
+        <ContributionGraph data={heatmapData} />
+      </div>
+
+      {weekData.length > 0 && (
         <>
+          {/* Weekly bar chart */}
           <Card>
             <CardContent className="space-y-4 py-6">
               <div className="flex items-baseline justify-between">
                 <h2 className="font-medium">This week</h2>
-                <span className="text-sm text-muted-foreground">{totalWeek} min total</span>
+                <span className="text-sm text-muted-foreground">{totalWeek} min</span>
               </div>
               <div className="flex items-end gap-2 h-32">
                 {weekData.map((d) => (
@@ -96,6 +114,7 @@ export default function AnalyticsPage() {
             </CardContent>
           </Card>
 
+          {/* Tag distribution */}
           {tagData.length > 0 && (
             <Card>
               <CardContent className="space-y-4 py-6">
@@ -123,6 +142,12 @@ export default function AnalyticsPage() {
             </Card>
           )}
         </>
+      )}
+
+      {weekData.length === 0 && Object.keys(heatmapData).length === 0 && (
+        <p className="text-muted-foreground">
+          Complete some focus sessions to see your analytics here.
+        </p>
       )}
     </div>
   )
