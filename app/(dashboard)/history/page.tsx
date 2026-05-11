@@ -1,6 +1,17 @@
 import { createClient } from '@/lib/supabase/server'
 import { SessionCard } from '@/components/session/session-card'
 
+interface SessionRow {
+  id: string
+  title: string | null
+  reflection: string | null
+  duration_seconds: number
+  focus_score: number | null
+  started_at: string | null
+  created_at: string
+  session_tags: { tag_id: string; tags: { name: string; color: string | null } | null }[]
+}
+
 export default async function HistoryPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -12,7 +23,7 @@ export default async function HistoryPage() {
     .order('created_at', { ascending: false })
     .limit(50)
 
-  const grouped = groupByDate(sessions ?? [])
+  const grouped = groupByDate((sessions ?? []) as unknown as SessionRow[])
 
   return (
     <div className="space-y-8">
@@ -26,7 +37,7 @@ export default async function HistoryPage() {
           <div key={date} className="space-y-3">
             <h2 className="text-sm font-medium text-muted-foreground">{date}</h2>
             <div className="space-y-2">
-              {items.map((session: any) => (
+              {items.map((session) => (
                 <SessionCard
                   key={session.id}
                   title={session.title}
@@ -35,7 +46,7 @@ export default async function HistoryPage() {
                   focus_score={session.focus_score}
                   started_at={session.started_at}
                   tags={
-                    session.session_tags?.map((st: any) => st.tags).filter(Boolean) ?? []
+                    session.session_tags?.map((st) => st.tags).filter(Boolean) as { name: string; color: string | null }[]
                   }
                 />
               ))}
@@ -47,8 +58,8 @@ export default async function HistoryPage() {
   )
 }
 
-function groupByDate(sessions: any[]) {
-  const groups: Record<string, any[]> = {}
+function groupByDate(sessions: SessionRow[]) {
+  const groups: Record<string, SessionRow[]> = {}
   for (const session of sessions) {
     const date = new Date(session.created_at).toLocaleDateString('en-US', {
       weekday: 'long',
