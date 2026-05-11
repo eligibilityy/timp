@@ -14,7 +14,7 @@ export default function DashboardPage() {
   const uiVisible = useAutoHide(status === 'running')
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)]">
+    <div className="fixed inset-0 flex flex-col items-center justify-center">
       <motion.div
         layout
         transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
