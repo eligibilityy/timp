@@ -29,18 +29,18 @@ export function TimerDisplay() {
   const strokeDashoffset = circumference * (1 - progress)
 
   return (
-    <div className="flex flex-col items-center gap-4">
+    <div className="flex flex-col items-center gap-3">
       <div className="relative flex items-center justify-center">
-        <svg width="280" height="280" className="-rotate-90">
+        <svg width="260" height="260" className="-rotate-90">
           <circle
-            cx="140" cy="140" r={radius}
-            fill="none" stroke="currentColor" strokeWidth="4"
-            className="text-muted/30"
+            cx="130" cy="130" r={radius}
+            fill="none" stroke="currentColor" strokeWidth="3"
+            className="text-muted/20"
           />
           {status !== 'idle' && (
             <circle
-              cx="140" cy="140" r={radius}
-              fill="none" stroke="currentColor" strokeWidth="4"
+              cx="130" cy="130" r={radius}
+              fill="none" stroke="currentColor" strokeWidth="3"
               strokeLinecap="round"
               strokeDasharray={circumference}
               strokeDashoffset={strokeDashoffset}
@@ -49,27 +49,19 @@ export function TimerDisplay() {
           )}
         </svg>
         <div className="absolute flex flex-col items-center">
-          <span className={cn('text-5xl font-light tabular-nums tracking-tight transition-colors', modeColors[mode])}>
+          <span className={cn('text-5xl font-extralight tabular-nums tracking-tight transition-colors', modeColors[mode])}>
             {time}
           </span>
-          <span className="mt-1 text-sm text-muted-foreground transition-all">
+          <span className="mt-2 text-xs text-muted-foreground uppercase tracking-widest">
             {modeLabels[mode]}
           </span>
         </div>
       </div>
-      <div className="flex gap-1.5">
-        {Array.from({ length: settings.cyclesBeforeLongBreak }).map((_, i) => (
-          <div
-            key={i}
-            className={cn(
-              'size-2 rounded-full transition-colors',
-              i < currentCycle - 1 ? 'bg-foreground' :
-              i === currentCycle - 1 && mode === 'work' && status !== 'idle' ? 'bg-foreground/50' :
-              'bg-muted'
-            )}
-          />
-        ))}
-      </div>
+      {status !== 'idle' && (
+        <p className="text-xs text-muted-foreground">
+          Cycle {currentCycle}
+        </p>
+      )}
     </div>
   )
 }

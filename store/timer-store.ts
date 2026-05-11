@@ -4,7 +4,7 @@ export type TimerMode = 'work' | 'shortBreak' | 'longBreak'
 export type TimerStatus = 'idle' | 'running' | 'paused' | 'completed'
 
 interface TimerSettings {
-  workDuration: number // seconds
+  workDuration: number
   shortBreakDuration: number
   longBreakDuration: number
   cyclesBeforeLongBreak: number
@@ -21,11 +21,11 @@ interface TimerState {
   sessionTags: string[]
   settings: TimerSettings
 
-  // Actions
   start: () => void
   pause: () => void
   resume: () => void
   skip: () => void
+  stop: () => void
   reset: () => void
   tick: () => void
   setIntent: (title: string, tags: string[]) => void
@@ -50,8 +50,10 @@ function getDuration(mode: TimerMode, settings: TimerSettings): number {
 
 function getNextMode(mode: TimerMode, currentCycle: number, settings: TimerSettings): TimerMode {
   if (mode === 'work') {
-    return currentCycle >= settings.cyclesBeforeLongBreak ? 'longBreak' : 'shortBreak'
+    // After every N work cycles, long break. Otherwise short break.
+    return currentCycle % settings.cyclesBeforeLongBreak === 0 ? 'longBreak' : 'shortBreak'
   }
+  // After any break, go back to work
   return 'work'
 }
 
@@ -75,30 +77,21 @@ export const useTimerStore = create<TimerState>((set, get) => ({
   },
 
   pause: () => set({ status: 'paused' }),
-
   resume: () => set({ status: 'running' }),
+
+  // Stop ends the session immediately — triggers reflection
+  stop: () => set({ status: 'completed' }),
 
   skip: () => {
     const { mode, currentCycle, settings } = get()
     const nextMode = getNextMode(mode, currentCycle, settings)
-    const nextCycle = mode !== 'work' ? currentCycle + (mode === 'longBreak' ? 1 - currentCycle : 1) : currentCycle
-
-    // If we just finished a long break, the full cycle is done
-    if (mode === 'longBreak') {
-      set({
-        mode: 'work',
-        status: 'completed',
-        secondsRemaining: 0,
-        currentCycle: 1,
-      })
-      return
-    }
+    const nextCycle = mode !== 'work' ? currentCycle + 1 : currentCycle
 
     set({
       mode: nextMode,
       status: settings.autoAdvance ? 'running' : 'paused',
       secondsRemaining: getDuration(nextMode, settings),
-      currentCycle: nextMode === 'work' ? currentCycle + 1 : currentCycle,
+      currentCycle: nextCycle,
     })
   },
 
@@ -119,16 +112,9 @@ export const useTimerStore = create<TimerState>((set, get) => ({
     const { secondsRemaining, mode, currentCycle, settings } = get()
 
     if (secondsRemaining <= 1) {
-      // Timer reached zero — advance to next interval
+      // Timer reached zero — advance to next interval (unlimited)
       const nextMode = getNextMode(mode, currentCycle, settings)
-
-      if (mode === 'longBreak') {
-        // Full cycle complete
-        set({ secondsRemaining: 0, status: 'completed' })
-        return
-      }
-
-      const nextCycle = nextMode === 'work' ? currentCycle + 1 : currentCycle
+      const nextCycle = mode !== 'work' ? currentCycle + 1 : currentCycle
 
       set({
         mode: nextMode,

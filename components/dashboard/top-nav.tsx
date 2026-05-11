@@ -5,7 +5,8 @@ import { usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { Timer, History, BarChart3, Settings, LogOut } from 'lucide-react'
+import { Timer, History, BarChart3, Settings, LogOut, Sun, Moon } from 'lucide-react'
+import { useTheme } from '@/components/theme-provider'
 
 const links = [
   { href: '/dashboard', label: 'Focus', icon: Timer },
@@ -17,6 +18,7 @@ const links = [
 export function TopNav() {
   const pathname = usePathname()
   const router = useRouter()
+  const { theme, toggle } = useTheme()
 
   const handleSignOut = async () => {
     const supabase = createClient()
@@ -25,7 +27,7 @@ export function TopNav() {
   }
 
   return (
-    <header className="border-b">
+    <header className="border-b border-border/50">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
         <Link href="/dashboard" className="text-lg font-semibold tracking-tight">
           timp
@@ -36,9 +38,9 @@ export function TopNav() {
               key={href}
               href={href}
               className={cn(
-                'flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm transition-colors',
+                'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm transition-colors',
                 pathname === href
-                  ? 'bg-accent text-accent-foreground'
+                  ? 'bg-muted text-foreground'
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
@@ -47,8 +49,16 @@ export function TopNav() {
             </Link>
           ))}
           <button
+            onClick={toggle}
+            className="ml-1 flex items-center justify-center rounded-lg p-2 text-muted-foreground transition-colors hover:text-foreground"
+            aria-label="Toggle theme"
+          >
+            {theme === 'light' ? <Moon className="size-4" /> : <Sun className="size-4" />}
+          </button>
+          <button
             onClick={handleSignOut}
-            className="ml-2 flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            className="flex items-center justify-center rounded-lg p-2 text-muted-foreground transition-colors hover:text-foreground"
+            aria-label="Sign out"
           >
             <LogOut className="size-4" />
           </button>

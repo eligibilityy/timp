@@ -5,14 +5,11 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { TagSelector } from '@/components/session/tag-selector'
 import { useTimerStore } from '@/store/timer-store'
-import { Play } from 'lucide-react'
 
 export function SessionIntent() {
-  const { status, setIntent, start } = useTimerStore()
+  const { setIntent, start } = useTimerStore()
   const [title, setTitle] = useState('')
   const [tagIds, setTagIds] = useState<string[]>([])
-
-  if (status !== 'idle') return null
 
   const handleStart = () => {
     setIntent(title, tagIds)
@@ -20,16 +17,17 @@ export function SessionIntent() {
   }
 
   return (
-    <div className="w-full max-w-sm space-y-4">
+    <div className="w-full space-y-4 text-center">
+      <p className="text-lg font-medium">What are you working on?</p>
       <Input
-        placeholder="What are you working on?"
+        placeholder="e.g. Building onboarding UI"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         onKeyDown={(e) => e.key === 'Enter' && handleStart()}
+        className="text-center"
       />
       <TagSelector selected={tagIds} onChange={setTagIds} />
-      <Button onClick={handleStart} className="w-full">
-        <Play className="mr-2 size-4" />
+      <Button onClick={handleStart} size="lg" className="w-full">
         Start Focus
       </Button>
     </div>
