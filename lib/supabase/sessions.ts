@@ -49,3 +49,19 @@ export async function getTags() {
 
   return data ?? []
 }
+
+
+export async function createTag(name: string, color: string) {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const { data, error } = await supabase
+    .from('tags')
+    .insert({ user_id: user.id, name: name.trim(), color })
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
