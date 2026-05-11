@@ -13,45 +13,34 @@ export default function DashboardPage() {
   const { status, sessionTitle } = useTimerStore()
   const uiVisible = useAutoHide(status === 'running')
 
+  const showTitle = status !== 'idle' && status !== 'completed' && sessionTitle
+  const showControls = status === 'running' || status === 'paused'
+
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center">
-      <motion.div
-        layout
-        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        className="flex flex-col items-center gap-6"
-      >
-        <AnimatePresence>
-          {status !== 'idle' && status !== 'completed' && sessionTitle && uiVisible && (
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="text-sm text-muted-foreground"
-            >
-              {sessionTitle}
-            </motion.p>
-          )}
-        </AnimatePresence>
+      <div className="flex flex-col items-center gap-6">
+        {/* Title - always in DOM when running, fades with visibility */}
+        <p
+          className="text-sm text-muted-foreground transition-opacity duration-200"
+          style={{ opacity: showTitle && uiVisible ? 1 : 0, visibility: showTitle ? 'visible' : 'hidden' }}
+        >
+          {sessionTitle || '\u00A0'}
+        </p>
 
         <TimerTicker />
         <TimerDisplay />
         <SessionIntent />
 
-        <AnimatePresence>
-          {(status === 'running' || status === 'paused') && uiVisible && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              <TimerControls />
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Controls - always in DOM when running, fades with visibility */}
+        <div
+          className="transition-opacity duration-200"
+          style={{ opacity: showControls && uiVisible ? 1 : 0, visibility: showControls ? 'visible' : 'hidden' }}
+        >
+          <TimerControls />
+        </div>
 
         <ReflectionModal />
-      </motion.div>
+      </div>
     </div>
   )
 }
