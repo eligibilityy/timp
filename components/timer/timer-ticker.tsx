@@ -48,6 +48,11 @@ export function TimerTicker() {
     defineSequence(steps)({ volume: alarmVolume })
   }, [alarmSound, alarmVolume])
 
+  const playAlarmOnce = useCallback(() => {
+    const def = ALARM_SOUNDS[alarmSound] ?? success
+    defineSound(def)({ volume: alarmVolume })
+  }, [alarmSound, alarmVolume])
+
   const showToast = useCallback((msg: string) => {
     setToast(msg)
     setTimeout(() => setToast(null), 4000)
@@ -61,15 +66,23 @@ export function TimerTicker() {
   }, [notifEnabled, showToast])
 
   // Alarm on mode transition (timer completed or skipped)
+  const prevSecondsRef = useRef(secondsRemaining)
   useEffect(() => {
     if (prevModeRef.current !== mode && prevStatusRef.current !== 'idle' && status !== 'idle') {
-      playAlarm()
+      // If previous seconds was low, it was a natural completion — full alarm
+      // If high (user skipped), just play once
+      if (prevSecondsRef.current <= 2) {
+        playAlarm()
+      } else {
+        playAlarmOnce()
+      }
       const label = mode === 'work' ? 'Break over — time to focus!' : 'Focus complete — take a break!'
       notify(label)
     }
     prevModeRef.current = mode
     prevStatusRef.current = status
-  }, [mode, status, playAlarm, notify])
+    prevSecondsRef.current = secondsRemaining
+  }, [mode, status, secondsRemaining, playAlarm, playAlarmOnce, notify])
 
   // Reminder notifications during focus
   useEffect(() => {
