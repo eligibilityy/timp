@@ -1,17 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { TagSelector } from '@/components/session/tag-selector'
 import { useTimerStore } from '@/store/timer-store'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog'
 
 export function SessionIntent() {
   const { status, setIntent, start } = useTimerStore()
@@ -35,35 +27,34 @@ export function SessionIntent() {
         Start Focus
       </Button>
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle>New session</DialogTitle>
-            <DialogDescription>What are you working on?</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <Input
+      {open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-xl bg-background/80">
+          <div className="flex flex-col items-center gap-6 w-full max-w-sm px-6">
+            <h2 className="text-xl font-medium">What are you working on?</h2>
+            <input
+              type="text"
               placeholder="e.g. Building onboarding UI"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleBegin()}
               autoFocus
+              className="w-full bg-transparent border-b border-border/50 pb-2 text-center text-lg outline-none placeholder:text-muted-foreground/50 focus:border-foreground/30 transition-colors"
             />
             <TagSelector selected={tagIds} onChange={setTagIds} />
-            <div className="flex flex-col gap-2 pt-2">
-              <Button onClick={handleBegin} className="w-full">
+            <div className="flex flex-col items-center gap-3 w-full pt-2">
+              <Button onClick={handleBegin} size="lg" className="w-full">
                 Begin
               </Button>
               <button
-                onClick={handleBegin}
+                onClick={() => setOpen(false)}
                 className="text-xs text-muted-foreground hover:text-foreground transition-colors"
               >
-                Start without title
+                Cancel
               </button>
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      )}
     </>
   )
 }
