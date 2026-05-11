@@ -80,7 +80,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
         <DialogHeader>
           <DialogTitle>Settings</DialogTitle>
         </DialogHeader>
-        <div className="max-h-[70vh] overflow-y-auto space-y-6 pr-1">
+        <div className="max-h-[70vh] overflow-y-auto overflow-x-hidden space-y-6 pr-1">
           {/* Timer */}
           <section className="space-y-3">
             <SectionLabel>Timer</SectionLabel>
@@ -134,8 +134,8 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
             )}
             <div className="space-y-1.5">
               <span className="text-xs text-muted-foreground">Alarm sound</span>
-              <div className="flex items-center gap-2">
-                <div className="flex gap-1 flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex gap-1 flex-wrap">
                   {ALARM_OPTIONS.map((opt) => (
                     <button
                       key={opt.key}
