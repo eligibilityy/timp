@@ -6,6 +6,7 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 import { SoundProvider } from '@web-kits/audio/react'
 import { useSoundSettings } from '@/store/sound-store'
 import { hydrateTimerSettings } from '@/store/timer-store'
+import { Toaster } from '@/components/ui/sonner'
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const { enabled, volume, setEnabled, setVolume } = useSoundSettings()
@@ -23,6 +24,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         onVolumeChange={setVolume}
       >
         <TooltipProvider>{children}</TooltipProvider>
+        <Toaster />
       </SoundProvider>
     </ThemeProvider>
   )

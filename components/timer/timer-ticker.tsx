@@ -1,11 +1,12 @@
 'use client'
 
-import { useEffect, useRef, useCallback, useState } from 'react'
+import { useEffect, useRef, useCallback } from 'react'
 import { useTimerStore } from '@/store/timer-store'
 import { useSoundSettings } from '@/store/sound-store'
 import { useNotificationSettings } from '@/store/notification-store'
 import { defineSound, defineSequence } from '@web-kits/audio'
 import { success, notification, warning, error } from '@/.web-kits/crisp'
+import { toast } from 'sonner'
 import type { SoundDefinition } from '@web-kits/audio'
 
 const ALARM_SOUNDS: Record<string, SoundDefinition> = { success, notification, warning, error }
@@ -24,13 +25,12 @@ export function TimerTicker() {
 
   const prevModeRef = useRef(mode)
   const prevStatusRef = useRef(status)
+  const prevSecondsRef = useRef(secondsRemaining)
   const lastNotifRef = useRef(0)
-  const [toast, setToast] = useState<string | null>(null)
 
   const playAlarm = useCallback(() => {
     const def = ALARM_SOUNDS[alarmSound] ?? success
     const play = defineSound(def)
-    // 3 bursts of 4 beeps: burst at 0s, 3s, 6s
     const steps = [
       { sound: play, at: 0 },
       { sound: play, at: 0.4 },
@@ -53,24 +53,16 @@ export function TimerTicker() {
     defineSound(def)({ volume: alarmVolume })
   }, [alarmSound, alarmVolume])
 
-  const showToast = useCallback((msg: string) => {
-    setToast(msg)
-    setTimeout(() => setToast(null), 4000)
-  }, [])
-
   const notify = useCallback((body: string) => {
-    showToast(body)
+    toast(body)
     if (notifEnabled && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
       new Notification('timp', { body })
     }
-  }, [notifEnabled, showToast])
+  }, [notifEnabled])
 
-  // Alarm on mode transition (timer completed or skipped)
-  const prevSecondsRef = useRef(secondsRemaining)
+  // Alarm on mode transition
   useEffect(() => {
     if (prevModeRef.current !== mode && prevStatusRef.current !== 'idle' && status !== 'idle') {
-      // If previous seconds was low, it was a natural completion — full alarm
-      // If high (user skipped), just play once
       if (prevSecondsRef.current <= 2) {
         playAlarm()
       } else {
@@ -92,7 +84,8 @@ export function TimerTicker() {
     const reminderSeconds = reminderMinutes * 60
 
     if (reminderMode === 'last') {
-      if (secondsRemaining === reminderSeconds && secondsRemaining < totalSeconds) {
+      // Use <= to avoid missing the exact second due to timing
+      if (secondsRemaining <= reminderSeconds && prevSecondsRef.current > reminderSeconds) {
         notify(`${reminderMinutes} minutes remaining.`)
       }
     } else {
@@ -146,11 +139,5 @@ export function TimerTicker() {
     return () => document.removeEventListener('visibilitychange', handleVisibility)
   }, [syncTime])
 
-  return toast ? (
-    <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] animate-in fade-in slide-in-from-top-2 duration-200">
-      <div className="rounded-full bg-secondary shadow-lg px-4 py-2 text-sm font-medium">
-        {toast}
-      </div>
-    </div>
-  ) : null
+  return null
 }
