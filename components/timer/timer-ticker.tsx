@@ -1,12 +1,13 @@
 'use client'
 
 import { useEffect, useRef, useCallback } from 'react'
-import { useTimerStore } from '@/store/timer-store'
+import { useTimerStore, type TimerMode } from '@/store/timer-store'
 import { useSoundSettings } from '@/store/sound-store'
 import { useNotificationSettings } from '@/store/notification-store'
 import { defineSound, defineSequence } from '@web-kits/audio'
 import { success, notification, warning, error } from '@/.web-kits/crisp'
 import { toast } from 'sonner'
+import { Brain, Coffee, Sofa } from 'lucide-react'
 import type { SoundDefinition } from '@web-kits/audio'
 
 const ALARM_SOUNDS: Record<string, SoundDefinition> = { success, notification, warning, error }
@@ -53,8 +54,11 @@ export function TimerTicker() {
     defineSound(def)({ volume: alarmVolume })
   }, [alarmSound, alarmVolume])
 
-  const notify = useCallback((body: string) => {
-    toast(body)
+  const notify = useCallback((body: string, timerMode?: TimerMode) => {
+    const icon = timerMode === 'work' ? <Brain className="size-4" /> :
+                 timerMode === 'shortBreak' ? <Coffee className="size-4" /> :
+                 timerMode === 'longBreak' ? <Sofa className="size-4" /> : undefined
+    toast(body, { icon })
     if (notifEnabled && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
       new Notification('timp', { body })
     }
@@ -69,7 +73,7 @@ export function TimerTicker() {
         playAlarmOnce()
       }
       const label = mode === 'work' ? 'Break over — time to focus!' : 'Focus complete — take a break!'
-      notify(label)
+      notify(label, mode)
     }
     prevModeRef.current = mode
     prevStatusRef.current = status
