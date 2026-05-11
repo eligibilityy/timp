@@ -1,5 +1,8 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { TopNav } from '@/components/dashboard/top-nav'
+
+export const dynamic = 'force-dynamic'
 
 export default async function DashboardLayout({
   children,
@@ -13,5 +16,12 @@ export default async function DashboardLayout({
     redirect('/login')
   }
 
-  return <>{children}</>
+  return (
+    <div className="flex min-h-screen flex-col">
+      <TopNav />
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8">
+        {children}
+      </main>
+    </div>
+  )
 }

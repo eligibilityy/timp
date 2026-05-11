@@ -1,7 +1,13 @@
+import { Card, CardContent } from '@/components/ui/card'
+
 export default function DashboardPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center">
-      <p className="text-muted-foreground">Dashboard — coming soon</p>
+    <div className="space-y-8">
+      <Card>
+        <CardContent className="flex items-center justify-center py-16">
+          <p className="text-muted-foreground">Timer will go here</p>
+        </CardContent>
+      </Card>
     </div>
   )
 }
