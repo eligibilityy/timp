@@ -4,6 +4,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Providers } from "@/components/providers";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const openRunde = localFont({
   src: [
@@ -20,7 +21,7 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 export const metadata: Metadata = {
   title: "timp — focus timer",
   description:
-    "A calm focus timer + reflection journal that visually tracks meaningful work over time.",
+    "A calm focus timer and reflection journal that visually tracks meaningful work over time.",
 };
 
 export default function RootLayout({
@@ -42,6 +43,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <Providers>{children}</Providers>
+        <SpeedInsights />
       </body>
     </html>
   );
