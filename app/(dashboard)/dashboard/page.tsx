@@ -3,6 +3,7 @@
 import { TimerDisplay } from '@/components/timer/timer-display'
 import { TimerControls } from '@/components/timer/timer-controls'
 import { TimerTicker } from '@/components/timer/timer-ticker'
+import { ReflectionModal } from '@/components/session/reflection-modal'
 
 export default function DashboardPage() {
   return (
@@ -10,6 +11,7 @@ export default function DashboardPage() {
       <TimerTicker />
       <TimerDisplay />
       <TimerControls />
+      <ReflectionModal />
     </div>
   )
 }
