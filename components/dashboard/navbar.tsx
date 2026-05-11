@@ -12,6 +12,7 @@ import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip
 import { SettingsModal } from '@/components/dashboard/settings-modal'
 import { useTimerStore } from '@/store/timer-store'
 import { useAutoHide } from '@/hooks/use-auto-hide'
+import { useAppSounds } from '@/hooks/use-app-sounds'
 
 const links = [
   { href: '/app', label: 'Focus', icon: Timer },
@@ -26,6 +27,7 @@ export function TopNav() {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const timerStatus = useTimerStore((s) => s.status)
   const visible = useAutoHide(timerStatus === 'running')
+  const { hover, click } = useAppSounds()
 
   const handleSignOut = async () => {
     const supabase = createClient()
@@ -44,6 +46,8 @@ export function TopNav() {
             <Tooltip key={href}>
               <TooltipTrigger
                 render={<Link href={href} />}
+                onMouseEnter={() => hover()}
+                onClick={() => click()}
                 className={cn(
                   'rounded-full p-2 transition-colors',
                   pathname === href
@@ -59,7 +63,8 @@ export function TopNav() {
           <div className="mx-1 h-4 w-px bg-border/50" />
           <Tooltip>
             <TooltipTrigger
-              onClick={() => setSettingsOpen(true)}
+              onClick={() => { click(); setSettingsOpen(true) }}
+              onMouseEnter={() => hover()}
               className="rounded-full p-2.5 text-muted-foreground transition-colors hover:text-foreground"
             >
               <Settings className="size-4" />
@@ -68,7 +73,8 @@ export function TopNav() {
           </Tooltip>
           <Tooltip>
             <TooltipTrigger
-              onClick={toggle}
+              onClick={() => { click(); toggle() }}
+              onMouseEnter={() => hover()}
               className="rounded-full p-2.5 text-muted-foreground transition-colors hover:text-foreground"
             >
               {theme === 'light' ? <Moon className="size-4" /> : <Sun className="size-4" />}
@@ -77,7 +83,8 @@ export function TopNav() {
           </Tooltip>
           <Tooltip>
             <TooltipTrigger
-              onClick={handleSignOut}
+              onClick={() => { click(); handleSignOut() }}
+              onMouseEnter={() => hover()}
               className="rounded-full p-2.5 text-muted-foreground transition-colors hover:text-foreground"
             >
               <LogOut className="size-4" />

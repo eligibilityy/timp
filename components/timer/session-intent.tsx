@@ -5,9 +5,11 @@ import { motion, AnimatePresence } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { TagSelector } from "@/components/session/tag-selector";
 import { useTimerStore } from "@/store/timer-store";
+import { useAppSounds } from "@/hooks/use-app-sounds";
 
 export function SessionIntent() {
   const { status, setIntent, start } = useTimerStore();
+  const { start: playStart } = useAppSounds();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [tagIds, setTagIds] = useState<string[]>([]);
@@ -17,6 +19,7 @@ export function SessionIntent() {
   const handleBegin = () => {
     setIntent(title, tagIds);
     start();
+    playStart();
     setOpen(false);
     setTitle("");
     setTagIds([]);

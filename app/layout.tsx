@@ -3,8 +3,7 @@ import { Inter } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-import { ThemeProvider } from "@/components/theme-provider";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { Providers } from "@/components/providers";
 
 const openRunde = localFont({
   src: [
@@ -20,7 +19,8 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
   title: "timp — focus timer",
-  description: "A calm focus timer + reflection journal that visually tracks meaningful work over time.",
+  description:
+    "A calm focus timer + reflection journal that visually tracks meaningful work over time.",
 };
 
 export default function RootLayout({
@@ -41,9 +41,7 @@ export default function RootLayout({
       )}
     >
       <body className="min-h-full flex flex-col">
-        <ThemeProvider>
-          <TooltipProvider>{children}</TooltipProvider>
-        </ThemeProvider>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
