@@ -1,24 +1,44 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useRef } from "react";
 import { useTimerStore } from "@/store/timer-store";
 import { useSoundSettings } from "@/store/sound-store";
 import { useNotificationSettings } from "@/store/notification-store";
 import { useSound } from "@web-kits/audio/react";
-import { tap, success, notification } from "@/.web-kits/crisp";
+import { defineSound } from "@web-kits/audio";
+import {
+  tap,
+  success,
+  notification,
+  select,
+  deselect,
+} from "@/.web-kits/crisp";
 import { SoundButton } from "@/components/ui/sound-button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
-import { Play } from "lucide-react";
+import {
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+  FieldLegend,
+  FieldSeparator,
+  FieldSet,
+} from "@/components/ui/field";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 
 import type { SoundDefinition } from "@web-kits/audio";
+import { Button } from "../ui/button";
+import { Calligraph } from "calligraph";
+import { AnimatePresence, motion } from "motion/react";
+import { ButtonGroup } from "../ui/button-group";
 
 const ALARM_OPTIONS: { key: string; label: string; sound: SoundDefinition }[] =
   [
@@ -32,285 +52,286 @@ interface SettingsModalProps {
 }
 
 export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
-  const { settings, updateSettings } = useTimerStore();
-  const soundSettings = useSoundSettings();
-  const notifSettings = useNotificationSettings();
-
-  // Local state for timer settings (commit on save)
-  const [work, setWork] = useState(settings.workDuration / 60);
-  const [shortBreak, setShortBreak] = useState(
-    settings.shortBreakDuration / 60,
-  );
-  const [longBreak, setLongBreak] = useState(settings.longBreakDuration / 60);
-  const [cycles, setCycles] = useState(settings.cyclesBeforeLongBreak);
-  const [autoStartBreaks, setAutoStartBreaks] = useState(
-    settings.autoStartBreaks,
-  );
-  const [autoStartTimers, setAutoStartTimers] = useState(
-    settings.autoStartTimers,
-  );
-
-  // Sound tick for slider
-  const playTick = useSound(tap);
-
-  // Alarm preview
-  const alarmDef =
-    ALARM_OPTIONS.find((o) => o.key === soundSettings.alarmSound)?.sound ??
-    success;
-  const playAlarmPreview = useSound(alarmDef);
-
-  // Throttle slider tick
-  const lastTick = useRef(0);
-  const handleVolumeTick = () => {
-    const now = Date.now();
-    if (now - lastTick.current > 80) {
-      playTick();
-      lastTick.current = now;
-    }
-  };
-
-  const handleSave = () => {
-    updateSettings({
-      workDuration: work * 60,
-      shortBreakDuration: shortBreak * 60,
-      longBreakDuration: longBreak * 60,
-      cyclesBeforeLongBreak: cycles,
-      autoStartBreaks,
-      autoStartTimers,
-    });
-    onOpenChange(false);
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="h-[90vh]">
         <DialogHeader>
           <DialogTitle>Settings</DialogTitle>
         </DialogHeader>
-        <div className="overflow-y-auto space-y-6 p-2 -m-2">
-          {/* Timer */}
-          <section className="space-y-3">
-            <SectionLabel>Timer</SectionLabel>
-            <div className="grid grid-cols-2 gap-2">
-              <Field label="Focus (min)">
-                <Input
-                  type="number"
-                  min={1}
-                  value={work}
-                  onChange={(e) => setWork(Number(e.target.value))}
-                />
-              </Field>
-              <Field label="Short break (min)">
-                <Input
-                  type="number"
-                  min={1}
-                  value={shortBreak}
-                  onChange={(e) => setShortBreak(Number(e.target.value))}
-                />
-              </Field>
-              <Field label="Long break (min)">
-                <Input
-                  type="number"
-                  min={1}
-                  value={longBreak}
-                  onChange={(e) => setLongBreak(Number(e.target.value))}
-                />
-              </Field>
-              <Field label="Intervals">
-                <Input
-                  type="number"
-                  min={1}
-                  value={cycles}
-                  onChange={(e) => setCycles(Number(e.target.value))}
-                />
-              </Field>
-            </div>
-            <Row label="Auto-start breaks">
-              <Switch
-                checked={autoStartBreaks}
-                onCheckedChange={setAutoStartBreaks}
-              />
-            </Row>
-            <Row label="Auto-start timers">
-              <Switch
-                checked={autoStartTimers}
-                onCheckedChange={setAutoStartTimers}
-              />
-            </Row>
-          </section>
-
-          {/* Sound */}
-          <section className="space-y-3">
-            <SectionLabel>Sound</SectionLabel>
-            <Row label="UI sounds">
-              <Switch
-                checked={soundSettings.enabled}
-                onCheckedChange={soundSettings.setEnabled}
-              />
-            </Row>
-            {soundSettings.enabled && (
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">Volume</span>
-                  <span className="text-xs text-muted-foreground tabular-nums">
-                    {Math.round(soundSettings.volume * 100)}%
-                  </span>
-                </div>
-                <Slider
-                  value={soundSettings.volume}
-                  onValueChange={(v) => {
-                    soundSettings.setVolume(v as number);
-                    handleVolumeTick();
-                  }}
-                  min={0}
-                  max={1}
-                  step={0.05}
-                />
-              </div>
-            )}
-            <div className="space-y-1.5">
-              <span className="text-xs text-muted-foreground">Alarm sound</span>
-              <div className="flex items-center gap-2 flex-wrap">
-                <div className="flex gap-1 flex-wrap">
-                  {ALARM_OPTIONS.map((opt) => (
-                    <button
-                      key={opt.key}
-                      onClick={() => soundSettings.setAlarmSound(opt.key)}
-                      className={`rounded-lg px-2.5 py-1.5 text-xs transition-colors ${
-                        soundSettings.alarmSound === opt.key
-                          ? "bg-foreground text-background"
-                          : "bg-secondary text-muted-foreground hover:text-foreground"
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-                <button
-                  onClick={() => playAlarmPreview()}
-                  className="rounded-lg bg-secondary p-1.5 text-muted-foreground hover:text-foreground transition-colors"
-                  aria-label="Preview alarm"
-                >
-                  <Play className="size-3.5" />
-                </button>
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">
-                  Alarm volume
-                </span>
-                <span className="text-xs text-muted-foreground tabular-nums">
-                  {Math.round(soundSettings.alarmVolume * 100)}%
-                </span>
-              </div>
-              <Slider
-                value={soundSettings.alarmVolume}
-                onValueChange={(v) => {
-                  soundSettings.setAlarmVolume(v as number);
-                  handleVolumeTick();
-                }}
-                min={0}
-                max={1}
-                step={0.05}
-              />
-            </div>
-          </section>
-
-          {/* Notifications */}
-          <section className="space-y-3">
-            <SectionLabel>Notifications</SectionLabel>
-            <Row label="Enable notifications">
-              <Switch
-                checked={notifSettings.enabled}
-                onCheckedChange={notifSettings.setEnabled}
-              />
-            </Row>
-            {notifSettings.enabled && (
-              <>
-                <div className="space-y-1.5">
-                  <span className="text-xs text-muted-foreground">
-                    Remind me
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <div className="flex gap-1">
-                      {(["every", "last"] as const).map((mode) => (
-                        <button
-                          key={mode}
-                          onClick={() => notifSettings.setReminderMode(mode)}
-                          className={`rounded-lg px-2.5 py-1.5 text-xs capitalize transition-colors ${
-                            notifSettings.reminderMode === mode
-                              ? "bg-foreground text-background"
-                              : "bg-secondary text-muted-foreground hover:text-foreground"
-                          }`}
-                        >
-                          {mode}
-                        </button>
-                      ))}
-                    </div>
-                    <Input
-                      type="number"
-                      min={1}
-                      value={notifSettings.reminderMinutes}
-                      onChange={(e) =>
-                        notifSettings.setReminderMinutes(Number(e.target.value))
-                      }
-                      className="w-16"
-                    />
-                    <span className="text-xs text-muted-foreground">min</span>
-                  </div>
-                </div>
-                <p className="text-[11px] text-muted-foreground/70">
-                  {notifSettings.reminderMode === "every"
-                    ? `You'll get a notification every ${notifSettings.reminderMinutes} minutes during focus.`
-                    : `You'll get a notification in the last ${notifSettings.reminderMinutes} minutes of focus.`}
-                </p>
-              </>
-            )}
-          </section>
-        </div>
-        <SoundButton onClick={handleSave} className="w-full">
-          Save
-        </SoundButton>
+        <SettingsForm onClose={() => onOpenChange(false)} />
       </DialogContent>
     </Dialog>
   );
 }
 
-function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-      {children}
-    </p>
-  );
-}
+function SettingsForm({ onClose }: { onClose: () => void }) {
+  const { settings, updateSettings } = useTimerStore();
+  const soundSettings = useSoundSettings();
+  const notifSettings = useNotificationSettings();
 
-function Row({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <label className="flex items-center justify-between">
-      <span className="text-sm">{label}</span>
-      {children}
-    </label>
-  );
-}
+  const playTick = useSound(tap);
+  const lastTick = useRef(0);
+  const handleVolumeTick = () => {
+    const now = Date.now();
+    if (now - lastTick.current > 20) {
+      playTick();
+      lastTick.current = now;
+    }
+  };
 
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
   return (
-    <div className="space-y-1.5">
-      <span className="text-xs text-muted-foreground">{label}</span>
-      {children}
-    </div>
+    <>
+      <div className="overflow-y-auto overflow-x-hidden space-y-8 w-full min-w-0 pb-4 scrollbar-none">
+        <FieldGroup>
+          <FieldSet>
+            <FieldLegend>Timer</FieldLegend>
+            <FieldDescription>
+              Enter your desired times in minutes.
+            </FieldDescription>
+            <FieldGroup>
+              <div className="grid grid-cols-3 gap-2">
+                <Field>
+                  <FieldLabel htmlFor="timerDuration">Focus</FieldLabel>
+                  <Input
+                    type="number"
+                    id="timerDuration"
+                    min={10}
+                    value={settings.workDuration / 60}
+                    onChange={(e) =>
+                      updateSettings({ workDuration: Math.max(1, Number(e.target.value)) * 60 })
+                    }
+                  />
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="shortBreakDuration">Short Break</FieldLabel>
+                  <Input
+                    type="number"
+                    id="shortBreakDuration"
+                    min={5}
+                    value={settings.shortBreakDuration / 60}
+                    onChange={(e) =>
+                      updateSettings({ shortBreakDuration: Math.max(1, Number(e.target.value)) * 60 })
+                    }
+                  />
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="longBreakDuration">Long Break</FieldLabel>
+                  <Input
+                    type="number"
+                    id="longBreakDuration"
+                    min={10}
+                    value={settings.longBreakDuration / 60}
+                    onChange={(e) =>
+                      updateSettings({ longBreakDuration: Math.max(1, Number(e.target.value)) * 60 })
+                    }
+                  />
+                </Field>
+              </div>
+              <div className="flex flex-col gap-3">
+                <Field orientation="horizontal" className="w-fit">
+                  <FieldLabel htmlFor="autoStartBreaks">Auto-start breaks?</FieldLabel>
+                  <Switch
+                    checked={settings.autoStartBreaks}
+                    onCheckedChange={(v) => {
+                      updateSettings({ autoStartBreaks: v });
+                      defineSound(v ? select : deselect)();
+                    }}
+                    id="autoStartBreaks"
+                  />
+                </Field>
+                <Field orientation="horizontal" className="w-fit">
+                  <FieldLabel htmlFor="autoStartTimers">Auto-start timers?</FieldLabel>
+                  <Switch
+                    checked={settings.autoStartTimers}
+                    onCheckedChange={(v) => {
+                      updateSettings({ autoStartTimers: v });
+                      defineSound(v ? select : deselect)();
+                    }}
+                    id="autoStartTimers"
+                  />
+                </Field>
+              </div>
+            </FieldGroup>
+          </FieldSet>
+          <FieldSeparator />
+          <FieldSet>
+            <FieldLegend>Sound</FieldLegend>
+            <FieldDescription>
+              Enable or disable sound settings, and customize the alarm.
+            </FieldDescription>
+            <FieldGroup>
+              <div className="flex flex-col gap-4">
+                <Field orientation="horizontal" className="w-fit">
+                  <FieldLabel htmlFor="soundSettings">Enable System Sounds?</FieldLabel>
+                  <Switch
+                    id="soundSettings"
+                    checked={soundSettings.enabled}
+                    onCheckedChange={(v) => {
+                      soundSettings.setEnabled(v);
+                      defineSound(v ? select : deselect)();
+                    }}
+                  />
+                </Field>
+                <AnimatePresence initial={false}>
+                  {soundSettings.enabled && (
+                    <motion.div
+                      layout
+                      key="sound-volume"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.6, ease: [0, 0.899, 0.45, 1] }}
+                    >
+                      <Field className="w-full b">
+                        <FieldLabel
+                          htmlFor="soundVolume"
+                          className="flex items-center justify-between"
+                        >
+                          <span>Volume</span>
+                          <Calligraph variant="number" className="text-muted-foreground">
+                            {`${Math.round(soundSettings.volume * 100)}%`}
+                          </Calligraph>
+                        </FieldLabel>
+                        <Slider
+                          id="soundVolume"
+                          value={soundSettings.volume}
+                          onValueChange={(v) => {
+                            soundSettings.setVolume(v as number);
+                            handleVolumeTick();
+                          }}
+                          min={0}
+                          max={1}
+                          step={0.05}
+                        />
+                      </Field>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+              <div className="flex flex-col gap-4">
+                <Field>
+                  <FieldLabel>Alarm Sound</FieldLabel>
+                  <ButtonGroup className="w-full">
+                    {ALARM_OPTIONS.map((opt) => (
+                      <Button
+                        key={opt.key}
+                        variant="secondary"
+                        onClick={() => {
+                          soundSettings.setAlarmSound(opt.key);
+                          defineSound(opt.sound)();
+                        }}
+                        className={`transition-colors w-1/2 ${
+                          soundSettings.alarmSound === opt.key
+                            ? "bg-primary text-background hover:bg-muted-foreground"
+                            : "bg-secondary text-muted-foreground hover:text-foreground"
+                        }`}
+                      >
+                        {opt.label}
+                      </Button>
+                    ))}
+                  </ButtonGroup>
+                </Field>
+                <Field className="w-full">
+                  <FieldLabel
+                    htmlFor="alarmVolume"
+                    className="flex items-center justify-between"
+                  >
+                    <span>Alarm Volume</span>
+                    <Calligraph variant="number" className="text-muted-foreground">
+                      {`${Math.round(soundSettings.alarmVolume * 100)}%`}
+                    </Calligraph>
+                  </FieldLabel>
+                  <Slider
+                    id="alarmVolume"
+                    value={soundSettings.alarmVolume}
+                    onValueChange={(v) => {
+                      soundSettings.setAlarmVolume(v as number);
+                      handleVolumeTick();
+                    }}
+                    min={0}
+                    max={1}
+                    step={0.05}
+                  />
+                </Field>
+              </div>
+            </FieldGroup>
+          </FieldSet>
+          <FieldSeparator />
+          <FieldSet>
+            <FieldLegend>Notifications</FieldLegend>
+            <FieldDescription>Enable or disable notifications.</FieldDescription>
+            <FieldGroup>
+              <Field orientation="horizontal" className="w-fit">
+                <FieldLabel htmlFor="notificationSettings">Enable Notifications?</FieldLabel>
+                <Switch
+                  id="notificationSettings"
+                  checked={notifSettings.enabled}
+                  onCheckedChange={(v) => {
+                    notifSettings.setEnabled(v);
+                    defineSound(v ? select : deselect)();
+                  }}
+                />
+              </Field>
+              <AnimatePresence initial={false}>
+                {notifSettings.enabled && (
+                  <motion.div
+                    layout
+                    key="notif-reminder"
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.6, ease: [0, 0.899, 0.45, 1] }}
+                    style={{ overflow: "hidden" }}
+                  >
+                    <Field className="">
+                      <FieldLabel htmlFor="reminderMinutes">Remind me</FieldLabel>
+                      <div className="flex gap-2 items-start">
+                        <ButtonGroup className="w-full">
+                          {(["every", "last"] as const).map((mode) => (
+                            <SoundButton
+                              variant="secondary"
+                              key={mode}
+                              sound={tap}
+                              onClick={() => notifSettings.setReminderMode(mode)}
+                              className={`w-1/2 capitalize transition-colors ${
+                                notifSettings.reminderMode === mode
+                                  ? "bg-primary text-background hover:bg-muted-foreground"
+                                  : "bg-secondary text-muted-foreground hover:text-foreground"
+                              }`}
+                            >
+                              {mode}
+                            </SoundButton>
+                          ))}
+                        </ButtonGroup>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            type="number"
+                            id="reminderMinutes"
+                            min={1}
+                            value={notifSettings.reminderMinutes}
+                            onChange={(e) =>
+                              notifSettings.setReminderMinutes(
+                                Math.max(1, Number(e.target.value)),
+                              )
+                            }
+                            className="w-16"
+                          />
+                          <span>minutes</span>
+                        </div>
+                      </div>
+                    </Field>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </FieldGroup>
+          </FieldSet>
+        </FieldGroup>
+      </div>
+      <DialogFooter>
+        <SoundButton onClick={onClose} className="w-full">
+          Save
+        </SoundButton>
+      </DialogFooter>
+    </>
   );
 }
