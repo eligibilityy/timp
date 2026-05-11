@@ -15,6 +15,16 @@ import { TagSelector } from "@/components/session/tag-selector";
 import { createSession } from "@/lib/supabase/sessions";
 import { useTimerStore } from "@/store/timer-store";
 import { cn } from "@/lib/utils";
+import { select } from "@/.web-kits/crisp";
+import {
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLegend,
+  FieldSeparator,
+  FieldSet,
+} from "../ui/field";
+import { Label } from "../ui/label";
 
 export function ReflectionModal() {
   const status = useTimerStore((s) => s.status);
@@ -34,7 +44,8 @@ export function ReflectionModal() {
 }
 
 function ReflectionForm() {
-  const { sessionTitle, sessionTags, sessionStartedAt, reset } = useTimerStore();
+  const { sessionTitle, sessionTags, sessionStartedAt, reset } =
+    useTimerStore();
 
   const [title, setTitle] = useState(sessionTitle);
   const [reflection, setReflection] = useState("");
@@ -72,54 +83,78 @@ function ReflectionForm() {
   };
 
   return (
-    <div className="space-y-4">
-      <Input
-        placeholder="Session title"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-      />
-      <Textarea
-        placeholder="Reflect on your session..."
-        value={reflection}
-        onChange={(e) => setReflection(e.target.value)}
-        rows={3}
-      />
-      <div className="space-y-2">
-        <label className="text-sm text-muted-foreground">Focus score</label>
-        <div className="flex gap-1">
-          {[1, 2, 3, 4, 5].map((n) => (
-            <button
-              key={n}
-              type="button"
-              onClick={() => setFocusScore(n)}
-              className={cn(
-                "size-9 rounded-md border text-sm transition-colors",
-                focusScore === n
-                  ? "border-foreground bg-foreground text-background"
-                  : "border-border text-muted-foreground hover:border-foreground/50",
-              )}
+    <FieldGroup>
+      <FieldSet>
+        <FieldGroup>
+          <Field>
+            <Label htmlFor="sessionTitle">Session Title</Label>
+            <Input
+              id="sessionTitle"
+              placeholder="Session title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+          </Field>
+          <Field>
+            <Label htmlFor="sessionReflection">Reflection</Label>
+            <Textarea
+              placeholder="Reflect on your session..."
+              value={reflection}
+              onChange={(e) => setReflection(e.target.value)}
+              rows={5}
+            />
+          </Field>
+          <Field>
+            <Label>Focus Score</Label>
+            <div className="flex gap-1">
+              {[1, 2, 3, 4, 5].map((n) => (
+                <SoundButton
+                  key={n}
+                  sound={select}
+                  variant={focusScore === n ? "default" : "outline"}
+                  onClick={() => setFocusScore(n)}
+                  className={cn(
+                    "size-9 rounded-md border text-sm transition-colors",
+                    focusScore === n
+                      ? "bg-foreground text-background"
+                      : "border-border text-muted-foreground hover:border-foreground/50",
+                  )}
+                >
+                  {n}
+                </SoundButton>
+              ))}
+            </div>
+            <FieldDescription>
+              Self-evaluate how productive you were during this session.
+            </FieldDescription>
+          </Field>
+        </FieldGroup>
+      </FieldSet>
+      <FieldSeparator />
+      <FieldSet>
+        <FieldGroup>
+          <Field>
+            <Label>Tags</Label>
+            <TagSelector selected={tagIds} onChange={setTagIds} />
+          </Field>
+          <div className="flex pt-2">
+            <SoundButton
+              onClick={handleSave}
+              disabled={saving}
+              className="flex-1"
             >
-              {n}
-            </button>
-          ))}
-        </div>
-      </div>
-      <div className="space-y-2">
-        <label className="text-sm text-muted-foreground">Tags</label>
-        <TagSelector selected={tagIds} onChange={setTagIds} />
-      </div>
-      <div className="flex gap-2 pt-2">
-        <SoundButton
-          onClick={handleSave}
-          disabled={saving}
-          className="flex-1"
-        >
-          {saving ? "Saving..." : "Save Reflection"}
-        </SoundButton>
-        <SoundButton variant="ghost" onClick={handleSkip}>
-          Don&apos;t Save
-        </SoundButton>
-      </div>
-    </div>
+              {saving ? "Saving..." : "Save Reflection"}
+            </SoundButton>
+            <SoundButton
+              variant="link"
+              className="text-sm text-muted-foreground hover:text-primary"
+              onClick={handleSkip}
+            >
+              Don&apos;t Save
+            </SoundButton>
+          </div>
+        </FieldGroup>
+      </FieldSet>
+    </FieldGroup>
   );
 }

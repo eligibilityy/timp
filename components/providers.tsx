@@ -1,19 +1,19 @@
-'use client'
+"use client";
 
-import { useEffect } from 'react'
-import { ThemeProvider } from '@/components/theme-provider'
-import { TooltipProvider } from '@/components/ui/tooltip'
-import { SoundProvider } from '@web-kits/audio/react'
-import { useSoundSettings } from '@/store/sound-store'
-import { hydrateTimerSettings } from '@/store/timer-store'
-import { Toaster } from '@/components/ui/sonner'
+import { useEffect } from "react";
+import { ThemeProvider } from "@/components/theme-provider";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { SoundProvider } from "@web-kits/audio/react";
+import { useSoundSettings } from "@/store/sound-store";
+import { hydrateTimerSettings } from "@/store/timer-store";
+import { Toaster } from "@/components/ui/sonner";
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  const { enabled, volume, setEnabled, setVolume } = useSoundSettings()
+  const { enabled, volume, setEnabled, setVolume } = useSoundSettings();
 
   useEffect(() => {
-    hydrateTimerSettings()
-  }, [])
+    hydrateTimerSettings();
+  }, []);
 
   return (
     <ThemeProvider>
@@ -24,8 +24,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
         onVolumeChange={setVolume}
       >
         <TooltipProvider>{children}</TooltipProvider>
-        <Toaster />
+        <Toaster closeButton />
       </SoundProvider>
     </ThemeProvider>
-  )
+  );
 }

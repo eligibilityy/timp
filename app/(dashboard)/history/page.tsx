@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { Clock, Star, MessageSquare } from "lucide-react";
+import { Clock, Star } from "lucide-react";
 
 interface SessionRow {
   id: string;
@@ -31,7 +31,8 @@ export default async function HistoryPage() {
   const grouped = groupByDate((sessions ?? []) as unknown as SessionRow[]);
   const totalSessions = sessions?.length ?? 0;
   const totalMinutes = (sessions ?? []).reduce(
-    (sum, s) => sum + Math.round((s as unknown as SessionRow).duration_seconds / 60),
+    (sum, s) =>
+      sum + Math.round((s as unknown as SessionRow).duration_seconds / 60),
     0,
   );
 
@@ -87,18 +88,17 @@ export default async function HistoryPage() {
                   return (
                     <div key={session.id} className="relative group">
                       {/* Timeline dot */}
-                      <div className="absolute -left-[31px] top-2 size-2.5 rounded-full bg-foreground/20 group-hover:bg-foreground/60 transition-colors ring-2 ring-background" />
+                      <div className="absolute -left-7.5 top-2 size-2.5 rounded-full bg-foreground/20 group-hover:bg-foreground/60 transition-colors ring-2 ring-background" />
 
                       {/* Card */}
                       <div className="rounded-2xl bg-secondary shadow-sm p-4 hover:shadow-md transition-shadow">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="space-y-1 min-w-0">
+                        <div className="flex items-start justify-between">
+                          <div className="space-y-2 min-w-0">
                             <p className="font-medium truncate">
                               {session.title || "Untitled session"}
                             </p>
                             {session.reflection && (
-                              <p className="text-sm text-muted-foreground line-clamp-2 flex items-start gap-1.5">
-                                <MessageSquare className="size-3 mt-0.5 shrink-0 opacity-50" />
+                              <p className="text-sm text-muted-foreground line-clamp-2 flex items-start gap-2">
                                 <span>{session.reflection}</span>
                               </p>
                             )}
@@ -117,9 +117,7 @@ export default async function HistoryPage() {
                             <Clock className="size-3" />
                             {minutes}m
                           </span>
-                          {time && (
-                            <span className="tabular-nums">{time}</span>
-                          )}
+                          {time && <span className="tabular-nums">{time}</span>}
                           {tags.length > 0 && (
                             <div className="flex gap-1 ml-auto">
                               {tags.map((tag) => (

@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "create-sound": {
+      "source": "raphaelsalaja/audio",
+      "sourceType": "github",
+      "skillPath": "skills/create-sound/SKILL.md",
+      "computedHash": "660bab63a6cffd9e508466569ffada96accd46194f9760c050cb5420ca6cfc46"
+    }
+  }
+}

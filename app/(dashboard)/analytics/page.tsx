@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { ContributionGraph } from "@/components/heatmap/contribution-graph";
+import { ProductivityGraph } from "@/components/heatmap/productivity-graph";
 import { Flame, Clock, Calendar, TrendingUp } from "lucide-react";
 
 interface DayData {
@@ -149,12 +149,12 @@ export default function AnalyticsPage() {
         />
       </div>
 
-      {/* Contribution Graph */}
+      {/* Productivity Graph */}
       <div className="space-y-3">
         <h2 className="text-sm font-medium text-muted-foreground">
-          Contributions
+          Productivity over the last year
         </h2>
-        <ContributionGraph data={heatmapData} />
+        <ProductivityGraph data={heatmapData} />
       </div>
 
       {/* Weekly activity + Tags side by side */}

@@ -25,6 +25,7 @@ import { SettingsModal } from "@/components/dashboard/settings-modal";
 import { useTimerStore } from "@/store/timer-store";
 import { useAutoHide } from "@/hooks/use-auto-hide";
 import { useAppSounds } from "@/hooks/use-app-sounds";
+import { Separator } from "../ui/separator";
 
 const links = [
   { href: "/app", label: "Focus", icon: Timer },
@@ -55,7 +56,7 @@ export function TopNav() {
           visible ? "opacity-100" : "opacity-0 pointer-events-none",
         )}
       >
-        <div className="flex items-center gap-1 rounded-full border border-border/50 bg-muted-foreground/20 backdrop-blur-xl px-2 py-2">
+        <div className="flex items-center gap-1 rounded-full border border-border/50 bg-muted backdrop-blur-xl px-2 py-2">
           {links.map(({ href, label, icon: Icon }) => (
             <Tooltip key={href}>
               <TooltipTrigger
@@ -70,10 +71,15 @@ export function TopNav() {
               >
                 <Icon className="size-5" />
               </TooltipTrigger>
-              <TooltipContent sideOffset={8}>{label}</TooltipContent>
+              <TooltipContent
+                className="select-none pointer-events-none"
+                sideOffset={8}
+              >
+                {label}
+              </TooltipContent>
             </Tooltip>
           ))}
-          <div className="mx-1 h-4 w-px bg-border/50" />
+          <Separator orientation="vertical" className="mx-1" />
           <Tooltip>
             <TooltipTrigger
               onClick={() => {
@@ -84,7 +90,9 @@ export function TopNav() {
             >
               <Settings className="size-4" />
             </TooltipTrigger>
-            <TooltipContent>Settings</TooltipContent>
+            <TooltipContent className="select-none pointer-events-none">
+              Settings
+            </TooltipContent>
           </Tooltip>
           <Tooltip>
             <TooltipTrigger
@@ -100,7 +108,7 @@ export function TopNav() {
                 <Sun className="size-4" />
               )}
             </TooltipTrigger>
-            <TooltipContent>
+            <TooltipContent className="select-none pointer-events-none">
               {theme === "light" ? "Dark mode" : "Light mode"}
             </TooltipContent>
           </Tooltip>
@@ -114,7 +122,9 @@ export function TopNav() {
             >
               <LogOut className="size-4" />
             </TooltipTrigger>
-            <TooltipContent>Sign out</TooltipContent>
+            <TooltipContent className="select-none pointer-events-none">
+              Sign out
+            </TooltipContent>
           </Tooltip>
         </div>
       </nav>

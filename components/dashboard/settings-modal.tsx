@@ -98,38 +98,52 @@ function SettingsForm({ onClose }: { onClose: () => void }) {
                     min={10}
                     value={settings.workDuration / 60}
                     onChange={(e) =>
-                      updateSettings({ workDuration: Math.max(1, Number(e.target.value)) * 60 })
+                      updateSettings({
+                        workDuration: Math.max(1, Number(e.target.value)) * 60,
+                      })
                     }
                   />
                 </Field>
                 <Field>
-                  <FieldLabel htmlFor="shortBreakDuration">Short Break</FieldLabel>
+                  <FieldLabel htmlFor="shortBreakDuration">
+                    Short Break
+                  </FieldLabel>
                   <Input
                     type="number"
                     id="shortBreakDuration"
                     min={5}
                     value={settings.shortBreakDuration / 60}
                     onChange={(e) =>
-                      updateSettings({ shortBreakDuration: Math.max(1, Number(e.target.value)) * 60 })
+                      updateSettings({
+                        shortBreakDuration:
+                          Math.max(1, Number(e.target.value)) * 60,
+                      })
                     }
                   />
                 </Field>
                 <Field>
-                  <FieldLabel htmlFor="longBreakDuration">Long Break</FieldLabel>
+                  <FieldLabel htmlFor="longBreakDuration">
+                    Long Break
+                  </FieldLabel>
                   <Input
                     type="number"
                     id="longBreakDuration"
                     min={10}
                     value={settings.longBreakDuration / 60}
                     onChange={(e) =>
-                      updateSettings({ longBreakDuration: Math.max(1, Number(e.target.value)) * 60 })
+                      updateSettings({
+                        longBreakDuration:
+                          Math.max(1, Number(e.target.value)) * 60,
+                      })
                     }
                   />
                 </Field>
               </div>
               <div className="flex flex-col gap-3">
                 <Field orientation="horizontal" className="w-fit">
-                  <FieldLabel htmlFor="autoStartBreaks">Auto-start breaks?</FieldLabel>
+                  <FieldLabel htmlFor="autoStartBreaks">
+                    Auto-start breaks?
+                  </FieldLabel>
                   <Switch
                     checked={settings.autoStartBreaks}
                     onCheckedChange={(v) => {
@@ -140,7 +154,9 @@ function SettingsForm({ onClose }: { onClose: () => void }) {
                   />
                 </Field>
                 <Field orientation="horizontal" className="w-fit">
-                  <FieldLabel htmlFor="autoStartTimers">Auto-start timers?</FieldLabel>
+                  <FieldLabel htmlFor="autoStartTimers">
+                    Auto-start timers?
+                  </FieldLabel>
                   <Switch
                     checked={settings.autoStartTimers}
                     onCheckedChange={(v) => {
@@ -162,7 +178,9 @@ function SettingsForm({ onClose }: { onClose: () => void }) {
             <FieldGroup>
               <div className="flex flex-col gap-4">
                 <Field orientation="horizontal" className="w-fit">
-                  <FieldLabel htmlFor="soundSettings">Enable System Sounds?</FieldLabel>
+                  <FieldLabel htmlFor="soundSettings">
+                    Enable System Sounds?
+                  </FieldLabel>
                   <Switch
                     id="soundSettings"
                     checked={soundSettings.enabled}
@@ -172,23 +190,30 @@ function SettingsForm({ onClose }: { onClose: () => void }) {
                     }}
                   />
                 </Field>
-                <AnimatePresence initial={false}>
+                <AnimatePresence>
                   {soundSettings.enabled && (
                     <motion.div
                       layout
                       key="sound-volume"
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
+                      initial={{ height: 0, opacity: 0, visibility: "hidden" }}
+                      animate={{
+                        height: "auto",
+                        opacity: 1,
+                        visibility: "visible",
+                      }}
+                      exit={{ height: 0, opacity: 0, visibility: "hidden" }}
                       transition={{ duration: 0.6, ease: [0, 0.899, 0.45, 1] }}
                     >
-                      <Field className="w-full b">
+                      <Field className="w-full">
                         <FieldLabel
                           htmlFor="soundVolume"
                           className="flex items-center justify-between"
                         >
                           <span>Volume</span>
-                          <Calligraph variant="number" className="text-muted-foreground">
+                          <Calligraph
+                            variant="number"
+                            className="text-muted-foreground"
+                          >
                             {`${Math.round(soundSettings.volume * 100)}%`}
                           </Calligraph>
                         </FieldLabel>
@@ -237,7 +262,10 @@ function SettingsForm({ onClose }: { onClose: () => void }) {
                     className="flex items-center justify-between"
                   >
                     <span>Alarm Volume</span>
-                    <Calligraph variant="number" className="text-muted-foreground">
+                    <Calligraph
+                      variant="number"
+                      className="text-muted-foreground"
+                    >
                       {`${Math.round(soundSettings.alarmVolume * 100)}%`}
                     </Calligraph>
                   </FieldLabel>
@@ -259,10 +287,14 @@ function SettingsForm({ onClose }: { onClose: () => void }) {
           <FieldSeparator />
           <FieldSet>
             <FieldLegend>Notifications</FieldLegend>
-            <FieldDescription>Enable or disable notifications.</FieldDescription>
+            <FieldDescription>
+              Enable or disable notifications.
+            </FieldDescription>
             <FieldGroup>
               <Field orientation="horizontal" className="w-fit">
-                <FieldLabel htmlFor="notificationSettings">Enable Notifications?</FieldLabel>
+                <FieldLabel htmlFor="notificationSettings">
+                  Enable Notifications?
+                </FieldLabel>
                 <Switch
                   id="notificationSettings"
                   checked={notifSettings.enabled}
@@ -284,7 +316,9 @@ function SettingsForm({ onClose }: { onClose: () => void }) {
                     style={{ overflow: "hidden" }}
                   >
                     <Field className="">
-                      <FieldLabel htmlFor="reminderMinutes">Remind me</FieldLabel>
+                      <FieldLabel htmlFor="reminderMinutes">
+                        Remind me
+                      </FieldLabel>
                       <div className="flex gap-2 items-start">
                         <ButtonGroup className="w-full">
                           {(["every", "last"] as const).map((mode) => (
@@ -292,7 +326,9 @@ function SettingsForm({ onClose }: { onClose: () => void }) {
                               variant="secondary"
                               key={mode}
                               sound={tap}
-                              onClick={() => notifSettings.setReminderMode(mode)}
+                              onClick={() =>
+                                notifSettings.setReminderMode(mode)
+                              }
                               className={`w-1/2 capitalize transition-colors ${
                                 notifSettings.reminderMode === mode
                                   ? "bg-primary text-background hover:bg-muted-foreground"

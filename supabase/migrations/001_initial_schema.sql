@@ -63,7 +63,7 @@ create policy "Users can delete own sessions"
 
 -- ============================================
 -- TAGS
--- ============================================
+-- =========================================  ===
 create table tags (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references profiles(id) on delete cascade,
