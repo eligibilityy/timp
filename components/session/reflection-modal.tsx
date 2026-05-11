@@ -20,7 +20,6 @@ import {
   Field,
   FieldDescription,
   FieldGroup,
-  FieldLegend,
   FieldSeparator,
   FieldSet,
 } from "../ui/field";
