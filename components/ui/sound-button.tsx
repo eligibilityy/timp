@@ -7,8 +7,8 @@ import { useAppSounds } from '@/hooks/use-app-sounds'
 type ButtonProps = React.ComponentProps<typeof Button>
 
 export const SoundButton = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ onClick, onMouseEnter, ...props }, ref) => {
-    const { click, hover } = useAppSounds()
+  ({ onClick, ...props }, ref) => {
+    const { click } = useAppSounds()
 
     return (
       <Button
@@ -16,10 +16,6 @@ export const SoundButton = forwardRef<HTMLButtonElement, ButtonProps>(
         onClick={(e) => {
           click()
           onClick?.(e)
-        }}
-        onMouseEnter={(e) => {
-          hover()
-          onMouseEnter?.(e)
         }}
         {...props}
       />
