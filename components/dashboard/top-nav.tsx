@@ -27,43 +27,39 @@ export function TopNav() {
   }
 
   return (
-    <header className="border-b border-border/50">
-      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
-        <Link href="/dashboard" className="text-lg font-semibold tracking-tight">
-          timp
-        </Link>
-        <nav className="flex items-center gap-1">
-          {links.map(({ href, label, icon: Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              className={cn(
-                'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm transition-colors',
-                pathname === href
-                  ? 'bg-muted text-foreground'
-                  : 'text-muted-foreground hover:text-foreground'
-              )}
-            >
-              <Icon className="size-4" />
-              <span className="hidden sm:inline">{label}</span>
-            </Link>
-          ))}
-          <button
-            onClick={toggle}
-            className="ml-1 flex items-center justify-center rounded-lg p-2 text-muted-foreground transition-colors hover:text-foreground"
-            aria-label="Toggle theme"
+    <nav className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2">
+      <div className="flex items-center gap-1 rounded-full border border-border/50 bg-background/80 px-2 py-2 backdrop-blur-lg">
+        {links.map(({ href, label, icon: Icon }) => (
+          <Link
+            key={href}
+            href={href}
+            className={cn(
+              'flex items-center gap-1.5 rounded-full px-3 py-2 text-xs transition-colors',
+              pathname === href
+                ? 'bg-foreground text-background'
+                : 'text-muted-foreground hover:text-foreground'
+            )}
           >
-            {theme === 'light' ? <Moon className="size-4" /> : <Sun className="size-4" />}
-          </button>
-          <button
-            onClick={handleSignOut}
-            className="flex items-center justify-center rounded-lg p-2 text-muted-foreground transition-colors hover:text-foreground"
-            aria-label="Sign out"
-          >
-            <LogOut className="size-4" />
-          </button>
-        </nav>
+            <Icon className="size-4" />
+            <span className="hidden sm:inline">{label}</span>
+          </Link>
+        ))}
+        <div className="mx-1 h-4 w-px bg-border/50" />
+        <button
+          onClick={toggle}
+          className="rounded-full p-2 text-muted-foreground transition-colors hover:text-foreground"
+          aria-label="Toggle theme"
+        >
+          {theme === 'light' ? <Moon className="size-4" /> : <Sun className="size-4" />}
+        </button>
+        <button
+          onClick={handleSignOut}
+          className="rounded-full p-2 text-muted-foreground transition-colors hover:text-foreground"
+          aria-label="Sign out"
+        >
+          <LogOut className="size-4" />
+        </button>
       </div>
-    </header>
+    </nav>
   )
 }
