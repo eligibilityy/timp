@@ -13,6 +13,7 @@
     "@nivo/calendar": "^0.99.0",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.105.4",
+    "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
     "@web-kits/audio": "^0.1.0",
     "calligraph": "^1.4.1",
