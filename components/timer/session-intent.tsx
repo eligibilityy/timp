@@ -1,16 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { SoundButton } from "@/components/ui/sound-button";
 import { TagSelector } from "@/components/session/tag-selector";
 import { useTimerStore } from "@/store/timer-store";
+import { defineSound } from "@web-kits/audio";
+import { pageEnter, pageExit, success } from "@/.web-kits/crisp";
 
 export function SessionIntent() {
   const { status, setIntent, start } = useTimerStore();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [tagIds, setTagIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        defineSound(pageExit)();
+        setOpen(false);
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [open]);
 
   if (status !== "idle") return null;
 
@@ -24,7 +38,12 @@ export function SessionIntent() {
 
   return (
     <>
-      <SoundButton size="lg" onClick={() => setOpen(true)}>
+      <SoundButton
+        size="lg"
+        className="text-lg p-6"
+        onClick={() => setOpen(true)}
+        sound={pageEnter}
+      >
         Start Focus
       </SoundButton>
 
@@ -35,7 +54,7 @@ export function SessionIntent() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[60] flex items-center justify-center backdrop-blur-xl bg-background/70"
+            className="fixed inset-0 z-60 flex items-center justify-center backdrop-blur-xl bg-background/70"
           >
             <motion.div
               initial={{ opacity: 0, y: 20, scale: 0.96 }}
@@ -47,7 +66,7 @@ export function SessionIntent() {
               <h2 className="text-2xl font-medium">What are you working on?</h2>
               <input
                 type="text"
-                placeholder="e.g. Building onboarding UI"
+                placeholder="e.g. Studying for Physics Exam"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleBegin()}
@@ -56,15 +75,22 @@ export function SessionIntent() {
               />
               <TagSelector selected={tagIds} onChange={setTagIds} />
               <div className="flex flex-col items-center gap-3 w-full pt-2">
-                <SoundButton onClick={handleBegin} size="lg" className="w-full">
+                <SoundButton
+                  sound={success}
+                  onClick={handleBegin}
+                  size="lg"
+                  className="w-full"
+                >
                   Begin
                 </SoundButton>
-                <button
+                <SoundButton
                   onClick={() => setOpen(false)}
+                  sound={pageExit}
+                  variant="link"
                   className="text-xs text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Cancel
-                </button>
+                </SoundButton>
               </div>
             </motion.div>
           </motion.div>
