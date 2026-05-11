@@ -14,10 +14,12 @@ import { Textarea } from '@/components/ui/textarea'
 import { TagSelector } from '@/components/session/tag-selector'
 import { createSession } from '@/lib/supabase/sessions'
 import { useTimerStore } from '@/store/timer-store'
+import { useAppSounds } from '@/hooks/use-app-sounds'
 import { cn } from '@/lib/utils'
 
 export function ReflectionModal() {
   const { status, sessionTitle, sessionStartedAt, reset } = useTimerStore()
+  const { click, complete } = useAppSounds()
   const open = status === 'completed'
 
   const [title, setTitle] = useState('')
@@ -49,6 +51,7 @@ export function ReflectionModal() {
     } catch (e) {
       console.error('Failed to save session:', e)
     } finally {
+      complete()
       setSaving(false)
       setTitle('')
       setReflection('')
@@ -59,6 +62,7 @@ export function ReflectionModal() {
   }
 
   const handleSkip = () => {
+    click()
     setTitle('')
     setReflection('')
     setFocusScore(null)

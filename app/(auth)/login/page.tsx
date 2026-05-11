@@ -2,11 +2,14 @@
 
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
+import { useAppSounds } from '@/hooks/use-app-sounds'
 
 export default function LoginPage() {
   const supabase = createClient()
+  const { click } = useAppSounds()
 
   const signIn = (provider: 'github' | 'google') => {
+    click()
     supabase.auth.signInWithOAuth({
       provider,
       options: { redirectTo: `${location.origin}/auth/callback` },
