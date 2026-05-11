@@ -2,14 +2,12 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Button } from "@/components/ui/button";
+import { SoundButton } from "@/components/ui/sound-button";
 import { TagSelector } from "@/components/session/tag-selector";
 import { useTimerStore } from "@/store/timer-store";
-import { useAppSounds } from "@/hooks/use-app-sounds";
 
 export function SessionIntent() {
   const { status, setIntent, start } = useTimerStore();
-  const { start: playStart } = useAppSounds();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [tagIds, setTagIds] = useState<string[]>([]);
@@ -19,7 +17,6 @@ export function SessionIntent() {
   const handleBegin = () => {
     setIntent(title, tagIds);
     start();
-    playStart();
     setOpen(false);
     setTitle("");
     setTagIds([]);
@@ -27,9 +24,9 @@ export function SessionIntent() {
 
   return (
     <>
-      <Button size="lg" onClick={() => setOpen(true)}>
+      <SoundButton size="lg" onClick={() => setOpen(true)}>
         Start Focus
-      </Button>
+      </SoundButton>
 
       <AnimatePresence>
         {open && (
@@ -59,9 +56,9 @@ export function SessionIntent() {
               />
               <TagSelector selected={tagIds} onChange={setTagIds} />
               <div className="flex flex-col items-center gap-3 w-full pt-2">
-                <Button onClick={handleBegin} size="lg" className="w-full">
+                <SoundButton onClick={handleBegin} size="lg" className="w-full">
                   Begin
-                </Button>
+                </SoundButton>
                 <button
                   onClick={() => setOpen(false)}
                   className="text-xs text-muted-foreground hover:text-foreground transition-colors"

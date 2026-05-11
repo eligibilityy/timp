@@ -8,18 +8,16 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
+import { SoundButton } from '@/components/ui/sound-button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { TagSelector } from '@/components/session/tag-selector'
 import { createSession } from '@/lib/supabase/sessions'
 import { useTimerStore } from '@/store/timer-store'
-import { useAppSounds } from '@/hooks/use-app-sounds'
 import { cn } from '@/lib/utils'
 
 export function ReflectionModal() {
   const { status, sessionTitle, sessionStartedAt, reset } = useTimerStore()
-  const { click, complete } = useAppSounds()
   const open = status === 'completed'
 
   const [title, setTitle] = useState('')
@@ -51,7 +49,6 @@ export function ReflectionModal() {
     } catch (e) {
       console.error('Failed to save session:', e)
     } finally {
-      complete()
       setSaving(false)
       setTitle('')
       setReflection('')
@@ -62,7 +59,6 @@ export function ReflectionModal() {
   }
 
   const handleSkip = () => {
-    click()
     setTitle('')
     setReflection('')
     setFocusScore(null)
@@ -116,12 +112,12 @@ export function ReflectionModal() {
             <TagSelector selected={tagIds} onChange={setTagIds} />
           </div>
           <div className="flex gap-2 pt-2">
-            <Button onClick={handleSave} disabled={saving} className="flex-1">
+            <SoundButton onClick={handleSave} disabled={saving} className="flex-1">
               {saving ? 'Saving...' : 'Save Reflection'}
-            </Button>
-            <Button variant="ghost" onClick={handleSkip}>
+            </SoundButton>
+            <SoundButton variant="ghost" onClick={handleSkip}>
               Skip
-            </Button>
+            </SoundButton>
           </div>
         </div>
       </DialogContent>

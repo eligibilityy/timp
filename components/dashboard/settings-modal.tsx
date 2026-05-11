@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useTimerStore } from '@/store/timer-store'
 import { useSoundSettings } from '@/store/sound-store'
-import { Button } from '@/components/ui/button'
+import { SoundButton } from '@/components/ui/sound-button'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import {
@@ -101,7 +101,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
             )}
           </div>
 
-          <Button onClick={handleSave} className="w-full">Save</Button>
+          <SoundButton onClick={handleSave} className="w-full">Save</SoundButton>
         </div>
       </DialogContent>
     </Dialog>
