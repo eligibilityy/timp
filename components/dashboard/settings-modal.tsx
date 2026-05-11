@@ -1,19 +1,28 @@
 'use client'
 
+import { useState } from 'react'
 import { useTimerStore } from '@/store/timer-store'
-import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { useState } from 'react'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 
-export default function SettingsPage() {
+interface SettingsModalProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}
+
+export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
   const { settings, updateSettings } = useTimerStore()
   const [work, setWork] = useState(settings.workDuration / 60)
   const [shortBreak, setShortBreak] = useState(settings.shortBreakDuration / 60)
   const [longBreak, setLongBreak] = useState(settings.longBreakDuration / 60)
   const [cycles, setCycles] = useState(settings.cyclesBeforeLongBreak)
   const [autoAdvance, setAutoAdvance] = useState(settings.autoAdvance)
-  const [saved, setSaved] = useState(false)
 
   const handleSave = () => {
     updateSettings({
@@ -23,32 +32,31 @@ export default function SettingsPage() {
       cyclesBeforeLongBreak: cycles,
       autoAdvance,
     })
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2000)
+    onOpenChange(false)
   }
 
   return (
-    <div className="space-y-8">
-      <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
-
-      <Card>
-        <CardContent className="space-y-6 py-6">
-          <h2 className="font-medium">Timer</h2>
-          <div className="grid gap-4 sm:grid-cols-2">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Settings</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="text-sm text-muted-foreground">Work duration (min)</label>
+              <label className="text-xs text-muted-foreground">Work (min)</label>
               <Input type="number" min={1} value={work} onChange={(e) => setWork(Number(e.target.value))} />
             </div>
             <div className="space-y-1">
-              <label className="text-sm text-muted-foreground">Short break (min)</label>
+              <label className="text-xs text-muted-foreground">Short break</label>
               <Input type="number" min={1} value={shortBreak} onChange={(e) => setShortBreak(Number(e.target.value))} />
             </div>
             <div className="space-y-1">
-              <label className="text-sm text-muted-foreground">Long break (min)</label>
+              <label className="text-xs text-muted-foreground">Long break</label>
               <Input type="number" min={1} value={longBreak} onChange={(e) => setLongBreak(Number(e.target.value))} />
             </div>
             <div className="space-y-1">
-              <label className="text-sm text-muted-foreground">Cycles before long break</label>
+              <label className="text-xs text-muted-foreground">Cycles</label>
               <Input type="number" min={1} value={cycles} onChange={(e) => setCycles(Number(e.target.value))} />
             </div>
           </div>
@@ -60,15 +68,11 @@ export default function SettingsPage() {
               onChange={(e) => setAutoAdvance(e.target.checked)}
               className="size-4 rounded border"
             />
-            <label htmlFor="autoAdvance" className="text-sm">
-              Auto-advance to next interval
-            </label>
+            <label htmlFor="autoAdvance" className="text-sm">Auto-advance</label>
           </div>
-          <Button onClick={handleSave}>
-            {saved ? 'Saved!' : 'Save settings'}
-          </Button>
-        </CardContent>
-      </Card>
-    </div>
+          <Button onClick={handleSave} className="w-full">Save</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }
