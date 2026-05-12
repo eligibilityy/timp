@@ -42,11 +42,27 @@ export default async function HistoryPage() {
     <div className="space-y-8">
       {/* Header with stats */}
       <PageHeader title="History">
-        {totalSessions > 0 && (
-          <p className="text-sm text-muted-foreground">
-            {totalSessions} sessions · {totalMinutes} minutes of focus
-          </p>
-        )}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <div className="flex items-center gap-2 text-sm">
+              <Clock className="size-4" />
+              {totalMinutes} min
+            </div>
+            ·
+            <div className="flex items-center gap-2 text-sm">
+              <Star className="size-4 fill-current" />
+              {totalSessions} sessions
+            </div>
+          </div>
+          {totalSessions > 0 && (
+            <a
+              href="/history/export"
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors underline"
+            >
+              Export CSV
+            </a>
+          )}
+        </div>
       </PageHeader>
 
       {Object.keys(grouped).length === 0 ? (
@@ -63,7 +79,7 @@ export default async function HistoryPage() {
           {Object.entries(grouped).map(([date, items]) => (
             <div key={date} className="relative">
               {/* Date header */}
-              <div className="sticky top-10 pb-3">
+              <div className="pb-3">
                 <h2 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   {date}
                 </h2>

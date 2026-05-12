@@ -15,6 +15,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { TagSelector } from "@/components/session/tag-selector";
 import { createSession } from "@/lib/supabase/sessions";
 import { useTimerStore } from "@/store/timer-store";
+import { useUser } from "@/hooks/use-user";
+import { useGuestStats } from "@/store/guest-store";
 import { cn } from "@/lib/utils";
 import { collapse, notification, select, success } from "@/.web-kits/crisp";
 import { defineSound } from "@web-kits/audio";
@@ -45,28 +47,31 @@ export function ReflectionModal() {
 }
 
 function ReflectionForm() {
-  const { sessionTitle, sessionTags, sessionStartedAt, reset } =
-    useTimerStore();
+  const { sessionTitle, sessionTags, sessionStartedAt, reset } = useTimerStore();
+  const { user } = useUser();
+  const addGuestSession = useGuestStats((s) => s.addSession);
 
   const [title, setTitle] = useState(sessionTitle);
   const [reflection, setReflection] = useState("");
   const [focusScore, setFocusScore] = useState<number | null>(1);
   const [tagIds, setTagIds] = useState<string[]>(sessionTags);
   const [saving, setSaving] = useState(false);
+  const [durationMinutes] = useState(() =>
+    sessionStartedAt
+      ? Math.round((Date.now() - new Date(sessionStartedAt).getTime()) / 60000)
+      : 0
+  );
 
   const handleSave = async () => {
     setSaving(true);
     defineSound(notification)();
     const endedAt = new Date().toISOString();
-    const durationSeconds = sessionStartedAt
-      ? Math.round((Date.now() - new Date(sessionStartedAt).getTime()) / 1000)
-      : 0;
 
     try {
       await createSession({
         title: title || null,
         reflection: reflection || null,
-        duration_seconds: durationSeconds,
+        duration_seconds: durationMinutes * 60,
         focus_score: focusScore,
         started_at: sessionStartedAt,
         ended_at: endedAt,
@@ -81,9 +86,31 @@ function ReflectionForm() {
     }
   };
 
-  const handleSkip = () => {
+  const handleDismiss = () => {
+    if (!user) addGuestSession(durationMinutes);
+    playSound(collapse);
     reset();
   };
+
+  if (!user) {
+    return (
+      <div className="flex flex-col items-center gap-4 py-4 text-center">
+        <p className="text-sm text-muted-foreground">
+          You focused for <span className="font-medium text-foreground">{durationMinutes} minutes</span>. Nice work!
+        </p>
+        <div className="w-full space-y-3 opacity-40 pointer-events-none">
+          <Input placeholder="Session title" disabled />
+          <Textarea placeholder="Reflection..." rows={3} disabled />
+        </div>
+        <p className="text-xs text-muted-foreground">
+          <a href="/login" className="underline hover:text-foreground transition-colors">Sign in</a> to save your sessions and track progress.
+        </p>
+        <Button onClick={handleDismiss} className="w-full">
+          Done
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <FieldGroup>
@@ -143,17 +170,13 @@ function ReflectionForm() {
             <TagSelector selected={tagIds} onChange={setTagIds} />
           </Field>
           <div className="flex pt-2">
-            <Button
-              onClick={handleSave}
-              disabled={saving}
-              className="flex-1"
-            >
+            <Button onClick={handleSave} disabled={saving} className="flex-1">
               {saving ? "Saving..." : "Save Reflection"}
             </Button>
             <Button
               variant="link"
               className="text-sm text-muted-foreground hover:text-primary"
-              onClick={() => { playSound(collapse); handleSkip(); }}
+              onClick={handleDismiss}
             >
               Don&apos;t Save
             </Button>

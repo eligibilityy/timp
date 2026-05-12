@@ -14,6 +14,8 @@ import {
   LogOut,
   Sun,
   Moon,
+  Trophy,
+  LogIn,
 } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
 import {
@@ -23,16 +25,17 @@ import {
 } from "@/components/ui/tooltip";
 import { SettingsModal } from "@/components/dashboard/settings-modal";
 import { useTimerStore } from "@/store/timer-store";
-import { useSoundSettings, type NavButtonKey } from "@/store/sound-store";
 import { useAutoHide } from "@/hooks/use-auto-hide";
-import { getSoundDef } from "@/lib/sound-map";
+import { useUser } from "@/hooks/use-user";
 import { playSound } from "@/lib/play-sound";
+import { click } from "@/.web-kits/crisp";
 import { Separator } from "../ui/separator";
 
 const links = [
-  { href: "/app", label: "Focus", icon: Timer, soundKey: "focus" as NavButtonKey },
-  { href: "/history", label: "History", icon: History, soundKey: "history" as NavButtonKey },
-  { href: "/analytics", label: "Analytics", icon: BarChart3, soundKey: "analytics" as NavButtonKey },
+  { href: "/app", label: "Focus", icon: Timer, guestOk: true },
+  { href: "/history", label: "History", icon: History, guestOk: false },
+  { href: "/analytics", label: "Analytics", icon: BarChart3, guestOk: false },
+  { href: "/leaderboard", label: "Leaderboard", icon: Trophy, guestOk: false },
 ];
 
 export function TopNav() {
@@ -42,8 +45,7 @@ export function TopNav() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const timerStatus = useTimerStore((s) => s.status);
   const visible = useAutoHide(timerStatus === "running");
-  const navSounds = useSoundSettings((s) => s.navSounds);
-  const playNav = (key: NavButtonKey) => playSound(getSoundDef(navSounds[key]));
+  const { user } = useUser();
 
   const handleSignOut = async () => {
     const supabase = createClient();
@@ -59,76 +61,95 @@ export function TopNav() {
           visible ? "opacity-100" : "opacity-0 pointer-events-none",
         )}
       >
-        <div className="flex items-center gap-1 rounded-full border border-border/50 bg-muted backdrop-blur-xl px-2 py-2">
-          {links.map(({ href, label, icon: Icon, soundKey }) => (
-            <Tooltip key={href}>
-              <TooltipTrigger
-                render={<Link href={href} />}
-                onClick={() => playNav(soundKey)}
-                className={cn(
-                  "rounded-full p-2 transition-colors",
-                  pathname === href
-                    ? "bg-foreground text-background"
-                    : "text-muted-foreground hover:bg-muted",
-                )}
-              >
-                <Icon className="size-5" />
-              </TooltipTrigger>
-              <TooltipContent
-                className="select-none pointer-events-none"
-                sideOffset={8}
-              >
-                {label}
-              </TooltipContent>
-            </Tooltip>
-          ))}
+        <div className="flex items-center gap-1 rounded-full border border-border backdrop-blur-xl px-2 py-2">
+          {links.map(({ href, label, icon: Icon, guestOk }) => {
+            const disabled = !guestOk && !user;
+            return (
+              <Tooltip key={href}>
+                <TooltipTrigger
+                  render={disabled ? <span /> : <Link href={href} />}
+                  onClick={() => { if (!disabled) playSound(click); }}
+                  className={cn(
+                    "rounded-full p-2 transition-colors",
+                    disabled
+                      ? "text-muted-foreground/30 cursor-not-allowed"
+                      : pathname === href
+                        ? "bg-foreground text-background"
+                        : "text-muted-foreground hover:bg-muted",
+                  )}
+                >
+                  <Icon className="size-5" />
+                </TooltipTrigger>
+                <TooltipContent className="select-none pointer-events-none" sideOffset={8}>
+                  {disabled ? "Sign in to access" : label}
+                </TooltipContent>
+              </Tooltip>
+            );
+          })}
           <Separator orientation="vertical" className="mx-1" />
-          <Tooltip>
-            <TooltipTrigger
-              onClick={() => {
-                playNav('settings');
-                setSettingsOpen(true);
-              }}
-              className="rounded-full p-2.5 text-muted-foreground transition-colors hover:text-foreground"
-            >
-              <Settings className="size-4" />
-            </TooltipTrigger>
-            <TooltipContent className="select-none pointer-events-none">
-              Settings
-            </TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger
-              onClick={() => {
-                playNav('theme');
-                toggle();
-              }}
-              className="rounded-full p-2.5 text-muted-foreground transition-colors hover:text-foreground"
-            >
-              {theme === "light" ? (
-                <Moon className="size-4" />
-              ) : (
-                <Sun className="size-4" />
-              )}
-            </TooltipTrigger>
-            <TooltipContent className="select-none pointer-events-none">
-              {theme === "light" ? "Dark mode" : "Light mode"}
-            </TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger
-              onClick={() => {
-                playNav('signOut');
-                handleSignOut();
-              }}
-              className="rounded-full p-2.5 text-muted-foreground transition-colors hover:text-foreground"
-            >
-              <LogOut className="size-4" />
-            </TooltipTrigger>
-            <TooltipContent className="select-none pointer-events-none">
-              Sign out
-            </TooltipContent>
-          </Tooltip>
+          {user ? (
+            <>
+              <Tooltip>
+                <TooltipTrigger
+                  onClick={() => { playSound(click); setSettingsOpen(true); }}
+                  className="rounded-full p-2.5 text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  <Settings className="size-4" />
+                </TooltipTrigger>
+                <TooltipContent className="select-none pointer-events-none">
+                  Settings
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger
+                  onClick={() => { playSound(click); toggle(); }}
+                  className="rounded-full p-2.5 text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  {theme === "light" ? <Moon className="size-4" /> : <Sun className="size-4" />}
+                </TooltipTrigger>
+                <TooltipContent className="select-none pointer-events-none">
+                  {theme === "light" ? "Dark mode" : "Light mode"}
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger
+                  onClick={() => { playSound(click); handleSignOut(); }}
+                  className="rounded-full p-2.5 text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  <LogOut className="size-4" />
+                </TooltipTrigger>
+                <TooltipContent className="select-none pointer-events-none">
+                  Sign out
+                </TooltipContent>
+              </Tooltip>
+            </>
+          ) : (
+            <>
+              <Tooltip>
+                <TooltipTrigger
+                  onClick={() => { playSound(click); toggle(); }}
+                  className="rounded-full p-2.5 text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  {theme === "light" ? <Moon className="size-4" /> : <Sun className="size-4" />}
+                </TooltipTrigger>
+                <TooltipContent className="select-none pointer-events-none">
+                  {theme === "light" ? "Dark mode" : "Light mode"}
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger
+                  render={<Link href="/login" />}
+                  onClick={() => playSound(click)}
+                  className="rounded-full p-2.5 text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  <LogIn className="size-4" />
+                </TooltipTrigger>
+                <TooltipContent className="select-none pointer-events-none">
+                  Sign in
+                </TooltipContent>
+              </Tooltip>
+            </>
+          )}
         </div>
       </nav>
       <SettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} />

@@ -6,11 +6,13 @@ import { Button } from "@/components/ui/button";
 import { playSound } from "@/lib/play-sound";
 import { TagSelector } from "@/components/session/tag-selector";
 import { useTimerStore } from "@/store/timer-store";
+import { useUser } from "@/hooks/use-user";
 import { defineSound } from "@web-kits/audio";
 import { pageEnter, pageExit, success } from "@/.web-kits/crisp";
 
 export function SessionIntent() {
   const { status, setIntent, start } = useTimerStore();
+  const { user } = useUser();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [tagIds, setTagIds] = useState<string[]>([]);
@@ -93,7 +95,13 @@ export function SessionIntent() {
                 animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                 transition={{ type: "spring", duration: 0.5, bounce: 0, delay: 0.15 }}
               >
-                <TagSelector selected={tagIds} onChange={setTagIds} />
+                {user ? (
+                  <TagSelector selected={tagIds} onChange={setTagIds} />
+                ) : (
+                  <p className="text-xs text-muted-foreground/60">
+                    <a href="/login" className="underline hover:text-foreground transition-colors">Sign in</a> to use tags
+                  </p>
+                )}
               </motion.div>
               <motion.div
                 initial={{ opacity: 0, y: 8, filter: "blur(4px)" }}
