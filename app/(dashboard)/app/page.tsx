@@ -3,7 +3,7 @@
 import { TimerDisplay } from "@/components/timer/timer-display";
 import { TimerControls } from "@/components/timer/timer-controls";
 import { TimerTicker } from "@/components/timer/timer-ticker";
-import { SessionIntent } from "@/components/timer/session-intent";
+import { SessionIntent } from "@/components/session/session-intent";
 import { ReflectionModal } from "@/components/session/reflection-modal";
 import { useTimerStore } from "@/store/timer-store";
 import { useAutoHide } from "@/hooks/use-auto-hide";
@@ -30,7 +30,7 @@ export default function DashboardPage() {
         </p>
 
         <TimerTicker />
-        <TimerDisplay focused={status === 'running' && !uiVisible} />
+        <TimerDisplay focused={status === "running" && !uiVisible} />
         <SessionIntent />
 
         {/* Controls - always in DOM when running, fades with visibility */}
