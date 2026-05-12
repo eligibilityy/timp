@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { Clock, Star } from "lucide-react";
 import { DeleteSessionButton } from "@/components/session/delete-session-button";
+import { PageHeader } from "@/components/dashboard/page-header";
 
 interface SessionRow {
   id: string;
@@ -40,14 +41,13 @@ export default async function HistoryPage() {
   return (
     <div className="space-y-8">
       {/* Header with stats */}
-      <div className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight">History</h1>
+      <PageHeader title="History">
         {totalSessions > 0 && (
           <p className="text-sm text-muted-foreground">
             {totalSessions} sessions · {totalMinutes} minutes of focus
           </p>
         )}
-      </div>
+      </PageHeader>
 
       {Object.keys(grouped).length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -63,7 +63,7 @@ export default async function HistoryPage() {
           {Object.entries(grouped).map(([date, items]) => (
             <div key={date} className="relative">
               {/* Date header */}
-              <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-sm pb-3">
+              <div className="sticky top-10 pb-3">
                 <h2 className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                   {date}
                 </h2>

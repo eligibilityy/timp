@@ -18,6 +18,7 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
+import { PageHeader } from "@/components/dashboard/page-header";
 
 interface DayData {
   day: string;
@@ -143,9 +144,9 @@ export default function AnalyticsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold tracking-tight mb-8">Analytics</h1>
+      <PageHeader title="Analytics" />
 
-      <div className="space-y-2">
+      <div className="space-y-2 mt-8">
         {/* Stats row */}
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           <StatCard
@@ -167,9 +168,7 @@ export default function AnalyticsPage() {
             value={`${totalSessions} ${totalSessions === 1 ? "session" : "sessions"}`}
           />
           <StatCard
-            icon={
-              <TrendingUp className="size-6 stroke-2 fill-white text-white" />
-            }
+            icon={<TrendingUp className="size-6 stroke-2 text-white" />}
             iconBgClassName="bg-emerald-400"
             label="This week"
             value={`${weekTotal} minutes`}
@@ -202,7 +201,12 @@ export default function AnalyticsPage() {
                     />
                     <ChartTooltip
                       cursor={false}
-                      content={<ChartTooltipContent hideLabel className="animate-in fade-in-0 duration-150" />}
+                      content={
+                        <ChartTooltipContent
+                          hideLabel
+                          className="animate-in fade-in-0 duration-150"
+                        />
+                      }
                     />
                     <Bar
                       dataKey="minutes"
