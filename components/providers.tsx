@@ -24,7 +24,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         onVolumeChange={setVolume}
       >
         <TooltipProvider>{children}</TooltipProvider>
-        <Toaster closeButton />
+        <Toaster />
       </SoundProvider>
     </ThemeProvider>
   );

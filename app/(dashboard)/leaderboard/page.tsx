@@ -12,6 +12,7 @@ type Period = "today" | "week" | "all";
 interface LeaderboardEntry {
   user_id: string;
   display_name: string | null;
+  role: string | null;
   total_minutes: number;
   session_count: number;
 }
@@ -38,7 +39,7 @@ export default function LeaderboardPage() {
 
     let query = supabase
       .from("sessions")
-      .select("user_id, duration_seconds, profiles!inner(display_name)");
+      .select("user_id, duration_seconds, profiles!inner(display_name, role)");
 
     if (startDate) {
       query = query.gte("started_at", startDate);
@@ -48,10 +49,10 @@ export default function LeaderboardPage() {
       if (cancelled) return;
       if (!data) { setEntries([]); setLoading(false); return; }
 
-      const grouped: Record<string, { display_name: string | null; total_seconds: number; count: number }> = {};
-      for (const row of data as unknown as { user_id: string; duration_seconds: number; profiles: { display_name: string | null } }[]) {
+      const grouped: Record<string, { display_name: string | null; role: string | null; total_seconds: number; count: number }> = {};
+      for (const row of data as unknown as { user_id: string; duration_seconds: number; profiles: { display_name: string | null; role: string | null } }[]) {
         if (!grouped[row.user_id]) {
-          grouped[row.user_id] = { display_name: row.profiles?.display_name ?? null, total_seconds: 0, count: 0 };
+          grouped[row.user_id] = { display_name: row.profiles?.display_name ?? null, role: row.profiles?.role ?? null, total_seconds: 0, count: 0 };
         }
         grouped[row.user_id].total_seconds += row.duration_seconds;
         grouped[row.user_id].count += 1;
@@ -61,6 +62,7 @@ export default function LeaderboardPage() {
         .map(([user_id, v]) => ({
           user_id,
           display_name: v.display_name,
+          role: v.role,
           total_minutes: Math.round(v.total_seconds / 60),
           session_count: v.count,
         }))
@@ -124,8 +126,13 @@ export default function LeaderboardPage() {
                 {i + 1}
               </span>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">
+                <p className="text-sm font-medium truncate flex items-center gap-1.5">
                   {entry.display_name || "Anonymous"}
+                  {entry.role && (
+                    <span className="inline-flex items-center rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-primary">
+                      {entry.role}
+                    </span>
+                  )}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {entry.session_count} sessions

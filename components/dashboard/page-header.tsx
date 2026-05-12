@@ -57,27 +57,21 @@ export function PageHeader({ title, children }: PageHeaderProps) {
     <>
       <div
         className={cn(
-          "sticky top-0 z-40 transition-opacity duration-300",
+          "sticky top-0 z-40 w-screen ml-[calc(-50vw+50%)] transition-opacity duration-300",
           visible ? "opacity-100" : "opacity-0 pointer-events-none",
         )}
-        style={{
-          borderBottom: scrolled
-            ? "0.5px solid oklch(0 0 0 / 0.1)"
-            : "0.5px solid transparent",
-          transition: "border-color 0.2s, opacity 0.3s",
-        }}
       >
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{ opacity: scrolled ? 1 : 0, transition: "opacity 0.2s" }}
-        >
-          <ProgressiveBlur position="top" height="100%" />
-        </div>
-        <div className="relative z-10 flex items-center justify-between px-4 py-3">
+        <ProgressiveBlur
+          position="top"
+          height="100%"
+          active={scrolled}
+          className="absolute! inset-0 overflow-hidden"
+        />
+        <div className="relative z-10 mx-auto flex w-full max-w-3xl items-center justify-between px-4 py-6">
           <PopoverPrimitive.Root>
             <PopoverPrimitive.Trigger
               onClick={() => playSound(click)}
-              className="text-sm font-semibold tracking-tight text-foreground hover:opacity-70 transition-opacity cursor-pointer"
+              className="text font-semibold tracking-tight text-foreground hover:opacity-70 transition-opacity cursor-pointer"
             >
               timp
             </PopoverPrimitive.Trigger>
@@ -121,7 +115,7 @@ export function PageHeader({ title, children }: PageHeaderProps) {
             </PopoverPrimitive.Portal>
           </PopoverPrimitive.Root>
           <span
-            className="absolute left-1/2 -translate-x-1/2 text-sm font-medium"
+            className="absolute left-1/2 -translate-x-1/2 text font-medium"
             style={{ opacity: scrolled ? 1 : 0, transition: "opacity 0.2s" }}
           >
             {title}
@@ -131,7 +125,7 @@ export function PageHeader({ title, children }: PageHeaderProps) {
       </div>
       <div
         ref={titleRef}
-        className="space-y-1"
+        className="space-y-1 pt-4"
         style={{ opacity: scrolled ? 0 : 1, transition: "opacity 0.2s" }}
       >
         <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>

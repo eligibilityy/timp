@@ -64,7 +64,7 @@ export function ProductivityGraph({ data }: ProductivityGraphProps) {
         <CardTitle>Productivity over the last year</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto scrollbar-thin">
           <div className="inline-block">
             {/* Month labels */}
             <div className="relative h-4 text-xs text-muted-foreground mb-1 ml-8">

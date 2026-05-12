@@ -1,63 +1,118 @@
 "use client";
+
+import React from "react";
+
 import { cn } from "@/lib/utils";
-import { HTMLMotionProps, motion } from "motion/react";
 
-export const GRADIENT_ANGLES = {
-  top: 0,
-  right: 90,
-  bottom: 180,
-  left: 270,
-};
-
-export type ProgressiveBlurProps = {
-  direction?: keyof typeof GRADIENT_ANGLES;
-  blurLayers?: number;
+export interface ProgressiveBlurProps {
   className?: string;
-  blurIntensity?: number;
-} & HTMLMotionProps<"div">;
+  height?: string;
+  position?: "top" | "bottom" | "both";
+  blurLevels?: number[];
+  children?: React.ReactNode;
+  active?: boolean;
+}
 
 export function ProgressiveBlur({
-  direction = "bottom",
-  blurLayers = 8,
   className,
-  blurIntensity = 0.25,
-  ...props
+  height = "30%",
+  position = "bottom",
+  blurLevels = [0.5, 1, 2, 4, 8, 16, 32, 64],
+  active = true,
 }: ProgressiveBlurProps) {
-  const layers = Math.max(blurLayers, 2);
-  const segmentSize = 1 / (blurLayers + 1);
+  // Create array with length equal to blurLevels.length - 2 (for before/after pseudo elements)
+  const divElements = Array(blurLevels.length - 2).fill(null);
 
   return (
-    <div className={cn("relative", className)}>
-      {Array.from({ length: layers }).map((_, index) => {
-        const angle = GRADIENT_ANGLES[direction];
-        const gradientStops = [
-          index * segmentSize,
-          (index + 1) * segmentSize,
-          (index + 2) * segmentSize,
-          (index + 3) * segmentSize,
-        ].map(
-          (pos, posIndex) =>
-            `rgba(255, 255, 255, ${posIndex === 1 || posIndex === 2 ? 1 : 0}) ${pos * 100}%`,
-        );
+    <div
+      className={cn(
+        "gradient-blur pointer-events-none absolute inset-x-0 z-10",
+        className,
+        position === "top"
+          ? "top-0"
+          : position === "bottom"
+            ? "bottom-0"
+            : "inset-y-0",
+      )}
+      style={{
+        height: position === "both" ? "100%" : height,
+      }}
+    >
+      {/* First blur layer (pseudo element) */}
+      <div
+        className="absolute inset-0"
+        style={{
+          zIndex: 1,
+          backdropFilter: active ? `blur(${blurLevels[0]}px)` : "blur(0px)",
+          WebkitBackdropFilter: active ? `blur(${blurLevels[0]}px)` : "blur(0px)",
+          transition: "backdrop-filter 0.2s, -webkit-backdrop-filter 0.2s",
+          maskImage:
+            position === "bottom"
+              ? `linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 12.5%, rgba(0,0,0,1) 25%, rgba(0,0,0,0) 37.5%)`
+              : position === "top"
+                ? `linear-gradient(to top, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 12.5%, rgba(0,0,0,1) 25%, rgba(0,0,0,0) 37.5%)`
+                : `linear-gradient(rgba(0,0,0,0) 0%, rgba(0,0,0,1) 5%, rgba(0,0,0,1) 95%, rgba(0,0,0,0) 100%)`,
+          WebkitMaskImage:
+            position === "bottom"
+              ? `linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 12.5%, rgba(0,0,0,1) 25%, rgba(0,0,0,0) 37.5%)`
+              : position === "top"
+                ? `linear-gradient(to top, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 12.5%, rgba(0,0,0,1) 25%, rgba(0,0,0,0) 37.5%)`
+                : `linear-gradient(rgba(0,0,0,0) 0%, rgba(0,0,0,1) 5%, rgba(0,0,0,1) 95%, rgba(0,0,0,0) 100%)`,
+        }}
+      />
 
-        const gradient = `linear-gradient(${angle}deg, ${gradientStops.join(
-          ", ",
-        )})`;
+      {/* Middle blur layers */}
+      {divElements.map((_, index) => {
+        const blurIndex = index + 1;
+        const startPercent = blurIndex * 12.5;
+        const midPercent = (blurIndex + 1) * 12.5;
+        const endPercent = (blurIndex + 2) * 12.5;
+
+        const maskGradient =
+          position === "bottom"
+            ? `linear-gradient(to bottom, rgba(0,0,0,0) ${startPercent}%, rgba(0,0,0,1) ${midPercent}%, rgba(0,0,0,1) ${endPercent}%, rgba(0,0,0,0) ${endPercent + 12.5}%)`
+            : position === "top"
+              ? `linear-gradient(to top, rgba(0,0,0,0) ${startPercent}%, rgba(0,0,0,1) ${midPercent}%, rgba(0,0,0,1) ${endPercent}%, rgba(0,0,0,0) ${endPercent + 12.5}%)`
+              : `linear-gradient(rgba(0,0,0,0) 0%, rgba(0,0,0,1) 5%, rgba(0,0,0,1) 95%, rgba(0,0,0,0) 100%)`;
 
         return (
-          <motion.div
-            key={index}
-            className="pointer-events-none absolute inset-0 rounded-[inherit]"
+          <div
+            key={`blur-${index}`}
+            className="absolute inset-0"
             style={{
-              maskImage: gradient,
-              WebkitMaskImage: gradient,
-              backdropFilter: `blur(${index * blurIntensity}px)`,
-              WebkitBackdropFilter: `blur(${index * blurIntensity}px)`,
+              zIndex: index + 2,
+              backdropFilter: active ? `blur(${blurLevels[blurIndex]}px)` : "blur(0px)",
+              WebkitBackdropFilter: active ? `blur(${blurLevels[blurIndex]}px)` : "blur(0px)",
+              transition: "backdrop-filter 0.2s, -webkit-backdrop-filter 0.2s",
+              maskImage: maskGradient,
+              WebkitMaskImage: maskGradient,
             }}
-            {...props}
           />
         );
       })}
+
+      {/* Last blur layer (pseudo element) */}
+      <div
+        className="absolute inset-0"
+        style={{
+          zIndex: blurLevels.length,
+          backdropFilter: active ? `blur(${blurLevels[blurLevels.length - 1]}px)` : "blur(0px)",
+          WebkitBackdropFilter: active ? `blur(${blurLevels[blurLevels.length - 1]}px)` : "blur(0px)",
+          transition: "backdrop-filter 0.2s, -webkit-backdrop-filter 0.2s",
+          maskImage:
+            position === "bottom"
+              ? `linear-gradient(to bottom, rgba(0,0,0,0) 87.5%, rgba(0,0,0,1) 100%)`
+              : position === "top"
+                ? `linear-gradient(to top, rgba(0,0,0,0) 87.5%, rgba(0,0,0,1) 100%)`
+                : `linear-gradient(rgba(0,0,0,0) 0%, rgba(0,0,0,1) 5%, rgba(0,0,0,1) 95%, rgba(0,0,0,0) 100%)`,
+          WebkitMaskImage:
+            position === "bottom"
+              ? `linear-gradient(to bottom, rgba(0,0,0,0) 87.5%, rgba(0,0,0,1) 100%)`
+              : position === "top"
+                ? `linear-gradient(to top, rgba(0,0,0,0) 87.5%, rgba(0,0,0,1) 100%)`
+                : `linear-gradient(rgba(0,0,0,0) 0%, rgba(0,0,0,1) 5%, rgba(0,0,0,1) 95%, rgba(0,0,0,0) 100%)`,
+        }}
+      />
     </div>
   );
 }

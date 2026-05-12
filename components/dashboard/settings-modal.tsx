@@ -2,8 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { useTimerStore } from "@/store/timer-store";
-import { useSoundSettings, type NavButtonKey } from "@/store/sound-store";
-import { SOUND_OPTIONS, getSoundDef } from "@/lib/sound-map";
+import { useSoundSettings } from "@/store/sound-store";
 import { useNotificationSettings } from "@/store/notification-store";
 import { useSound } from "@web-kits/audio/react";
 import { defineSound } from "@web-kits/audio";
@@ -294,48 +293,6 @@ function SettingsForm({ onClose }: { onClose: () => void }) {
                   />
                 </Field>
               </div>
-            </FieldGroup>
-          </FieldSet>
-          <FieldSeparator />
-          <FieldSet>
-            <FieldLegend>Navbar Sounds</FieldLegend>
-            <FieldDescription>
-              Choose a sound for each navbar button.
-            </FieldDescription>
-            <FieldGroup>
-              {(
-                [
-                  ["focus", "Focus"],
-                  ["history", "History"],
-                  ["analytics", "Analytics"],
-                  ["settings", "Settings"],
-                  ["theme", "Theme"],
-                  ["signOut", "Sign Out"],
-                ] as [NavButtonKey, string][]
-              ).map(([key, label]) => (
-                <Field key={key}>
-                  <FieldLabel>{label}</FieldLabel>
-                  <ButtonGroup className="w-full">
-                    {SOUND_OPTIONS.map((opt) => (
-                      <Button
-                        key={opt.key}
-                        variant="secondary"
-                        onClick={() => {
-                          soundSettings.setNavSound(key, opt.key);
-                          defineSound(getSoundDef(opt.key))();
-                        }}
-                        className={`transition-colors text-xs ${
-                          soundSettings.navSounds[key] === opt.key
-                            ? "bg-primary text-background hover:bg-muted-foreground"
-                            : "bg-secondary text-muted-foreground hover:text-foreground"
-                        }`}
-                      >
-                        {opt.label}
-                      </Button>
-                    ))}
-                  </ButtonGroup>
-                </Field>
-              ))}
             </FieldGroup>
           </FieldSet>
           <FieldSeparator />

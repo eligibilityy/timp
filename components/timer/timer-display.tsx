@@ -47,7 +47,7 @@ export function TimerDisplay({ focused = false }: { focused?: boolean }) {
             fill="none"
             stroke="currentColor"
             strokeWidth="3"
-            className="text-muted/70"
+            className="text-neutral-200 dark:text-muted/70"
           />
           {status !== "idle" && (
             <circle
@@ -80,7 +80,7 @@ export function TimerDisplay({ focused = false }: { focused?: boolean }) {
             {time}
           </Calligraph>
           <NumericText
-            value={`${modeLabels[mode]}.`}
+            value={`${modeLabels[mode]}`}
             className="mt-1 text-sm text-muted-foreground"
           />
         </div>
