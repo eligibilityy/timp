@@ -17,7 +17,7 @@ export function TimerControls() {
           <Button
             size="lg"
             variant={status === "running" ? "secondary" : undefined}
-            onClick={() => { playSound(click); status === "running" ? pause() : resume(); }}
+            onClick={() => { playSound(click); if (status === "running") pause(); else resume(); }}
           >
             {status === "running" ? (
               <Pause className="size-4" />
