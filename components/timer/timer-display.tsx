@@ -3,6 +3,7 @@
 import { useTimerStore, type TimerMode } from "@/store/timer-store";
 import { cn } from "@/lib/utils";
 import { Calligraph } from "calligraph";
+import NumericText from "@numeric-text/react";
 
 const modeLabels: Record<TimerMode, string> = {
   work: "Focus",
@@ -78,9 +79,10 @@ export function TimerDisplay({ focused = false }: { focused?: boolean }) {
           >
             {time}
           </Calligraph>
-          <span className="mt-1 text-sm text-muted-foreground">
-            {modeLabels[mode]}.
-          </span>
+          <NumericText
+            value={`${modeLabels[mode]}.`}
+            className="mt-1 text-sm text-muted-foreground"
+          />
         </div>
       </div>
       {status !== "idle" && (

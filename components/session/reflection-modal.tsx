@@ -8,14 +8,16 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { SoundButton } from "@/components/ui/sound-button";
+import { Button } from "@/components/ui/button";
+import { playSound } from "@/lib/play-sound";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { TagSelector } from "@/components/session/tag-selector";
 import { createSession } from "@/lib/supabase/sessions";
 import { useTimerStore } from "@/store/timer-store";
 import { cn } from "@/lib/utils";
-import { select } from "@/.web-kits/crisp";
+import { collapse, notification, select, success } from "@/.web-kits/crisp";
+import { defineSound } from "@web-kits/audio";
 import {
   Field,
   FieldDescription,
@@ -48,12 +50,13 @@ function ReflectionForm() {
 
   const [title, setTitle] = useState(sessionTitle);
   const [reflection, setReflection] = useState("");
-  const [focusScore, setFocusScore] = useState<number | null>(null);
+  const [focusScore, setFocusScore] = useState<number | null>(1);
   const [tagIds, setTagIds] = useState<string[]>(sessionTags);
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
     setSaving(true);
+    defineSound(notification)();
     const endedAt = new Date().toISOString();
     const durationSeconds = sessionStartedAt
       ? Math.round((Date.now() - new Date(sessionStartedAt).getTime()) / 1000)
@@ -69,6 +72,7 @@ function ReflectionForm() {
         ended_at: endedAt,
         tagIds,
       });
+      defineSound(success)();
     } catch (e) {
       console.error("Failed to save session:", e);
     } finally {
@@ -89,15 +93,18 @@ function ReflectionForm() {
             <Label htmlFor="sessionTitle">Session Title</Label>
             <Input
               id="sessionTitle"
-              placeholder="Session title"
+              placeholder="What did you work on?"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
+            <FieldDescription>
+              Optional — defaults to &quot;Untitled Session&quot;
+            </FieldDescription>
           </Field>
           <Field>
             <Label htmlFor="sessionReflection">Reflection</Label>
             <Textarea
-              placeholder="Reflect on your session..."
+              placeholder="What went well? What was hard?"
               value={reflection}
               onChange={(e) => setReflection(e.target.value)}
               rows={5}
@@ -107,11 +114,10 @@ function ReflectionForm() {
             <Label>Focus Score</Label>
             <div className="flex gap-1">
               {[1, 2, 3, 4, 5].map((n) => (
-                <SoundButton
+                <Button
                   key={n}
-                  sound={select}
                   variant={focusScore === n ? "default" : "outline"}
-                  onClick={() => setFocusScore(n)}
+                  onClick={() => { playSound(select); setFocusScore(n); }}
                   className={cn(
                     "size-9 rounded-md border text-sm transition-colors",
                     focusScore === n
@@ -120,7 +126,7 @@ function ReflectionForm() {
                   )}
                 >
                   {n}
-                </SoundButton>
+                </Button>
               ))}
             </div>
             <FieldDescription>
@@ -137,20 +143,20 @@ function ReflectionForm() {
             <TagSelector selected={tagIds} onChange={setTagIds} />
           </Field>
           <div className="flex pt-2">
-            <SoundButton
+            <Button
               onClick={handleSave}
               disabled={saving}
               className="flex-1"
             >
               {saving ? "Saving..." : "Save Reflection"}
-            </SoundButton>
-            <SoundButton
+            </Button>
+            <Button
               variant="link"
               className="text-sm text-muted-foreground hover:text-primary"
-              onClick={handleSkip}
+              onClick={() => { playSound(collapse); handleSkip(); }}
             >
               Don&apos;t Save
-            </SoundButton>
+            </Button>
           </div>
         </FieldGroup>
       </FieldSet>

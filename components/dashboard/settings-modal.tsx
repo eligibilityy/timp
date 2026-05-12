@@ -1,8 +1,9 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useTimerStore } from "@/store/timer-store";
-import { useSoundSettings } from "@/store/sound-store";
+import { useSoundSettings, type NavButtonKey } from "@/store/sound-store";
+import { SOUND_OPTIONS, getSoundDef } from "@/lib/sound-map";
 import { useNotificationSettings } from "@/store/notification-store";
 import { useSound } from "@web-kits/audio/react";
 import { defineSound } from "@web-kits/audio";
@@ -12,8 +13,9 @@ import {
   notification,
   select,
   deselect,
+  collapse,
 } from "@/.web-kits/crisp";
-import { SoundButton } from "@/components/ui/sound-button";
+import { playSound } from "@/lib/play-sound";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
@@ -53,7 +55,7 @@ interface SettingsModalProps {
 
 export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(v) => { if (!v) defineSound(collapse)(); onOpenChange(v); }}>
       <DialogContent className="h-[90vh]">
         <DialogHeader>
           <DialogTitle>Settings</DialogTitle>
@@ -78,6 +80,16 @@ function SettingsForm({ onClose }: { onClose: () => void }) {
       lastTick.current = now;
     }
   };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        defineSound(collapse)();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   return (
     <>
@@ -286,6 +298,48 @@ function SettingsForm({ onClose }: { onClose: () => void }) {
           </FieldSet>
           <FieldSeparator />
           <FieldSet>
+            <FieldLegend>Navbar Sounds</FieldLegend>
+            <FieldDescription>
+              Choose a sound for each navbar button.
+            </FieldDescription>
+            <FieldGroup>
+              {(
+                [
+                  ["focus", "Focus"],
+                  ["history", "History"],
+                  ["analytics", "Analytics"],
+                  ["settings", "Settings"],
+                  ["theme", "Theme"],
+                  ["signOut", "Sign Out"],
+                ] as [NavButtonKey, string][]
+              ).map(([key, label]) => (
+                <Field key={key}>
+                  <FieldLabel>{label}</FieldLabel>
+                  <ButtonGroup className="w-full">
+                    {SOUND_OPTIONS.map((opt) => (
+                      <Button
+                        key={opt.key}
+                        variant="secondary"
+                        onClick={() => {
+                          soundSettings.setNavSound(key, opt.key);
+                          defineSound(getSoundDef(opt.key))();
+                        }}
+                        className={`transition-colors text-xs ${
+                          soundSettings.navSounds[key] === opt.key
+                            ? "bg-primary text-background hover:bg-muted-foreground"
+                            : "bg-secondary text-muted-foreground hover:text-foreground"
+                        }`}
+                      >
+                        {opt.label}
+                      </Button>
+                    ))}
+                  </ButtonGroup>
+                </Field>
+              ))}
+            </FieldGroup>
+          </FieldSet>
+          <FieldSeparator />
+          <FieldSet>
             <FieldLegend>Notifications</FieldLegend>
             <FieldDescription>
               Enable or disable notifications.
@@ -322,13 +376,13 @@ function SettingsForm({ onClose }: { onClose: () => void }) {
                       <div className="flex gap-2 items-start">
                         <ButtonGroup className="w-full">
                           {(["every", "last"] as const).map((mode) => (
-                            <SoundButton
+                            <Button
                               variant="secondary"
                               key={mode}
-                              sound={tap}
-                              onClick={() =>
-                                notifSettings.setReminderMode(mode)
-                              }
+                              onClick={() => {
+                                playSound(tap);
+                                notifSettings.setReminderMode(mode);
+                              }}
                               className={`w-1/2 capitalize transition-colors ${
                                 notifSettings.reminderMode === mode
                                   ? "bg-primary text-background hover:bg-muted-foreground"
@@ -336,7 +390,7 @@ function SettingsForm({ onClose }: { onClose: () => void }) {
                               }`}
                             >
                               {mode}
-                            </SoundButton>
+                            </Button>
                           ))}
                         </ButtonGroup>
                         <div className="flex items-center gap-2">
@@ -364,9 +418,9 @@ function SettingsForm({ onClose }: { onClose: () => void }) {
         </FieldGroup>
       </div>
       <DialogFooter>
-        <SoundButton onClick={onClose} className="w-full">
+        <Button onClick={() => { playSound(success); onClose(); }} className="w-full">
           Save
-        </SoundButton>
+        </Button>
       </DialogFooter>
     </>
   );

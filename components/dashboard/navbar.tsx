@@ -23,14 +23,16 @@ import {
 } from "@/components/ui/tooltip";
 import { SettingsModal } from "@/components/dashboard/settings-modal";
 import { useTimerStore } from "@/store/timer-store";
+import { useSoundSettings, type NavButtonKey } from "@/store/sound-store";
 import { useAutoHide } from "@/hooks/use-auto-hide";
-import { useAppSounds } from "@/hooks/use-app-sounds";
+import { getSoundDef } from "@/lib/sound-map";
+import { playSound } from "@/lib/play-sound";
 import { Separator } from "../ui/separator";
 
 const links = [
-  { href: "/app", label: "Focus", icon: Timer },
-  { href: "/history", label: "History", icon: History },
-  { href: "/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/app", label: "Focus", icon: Timer, soundKey: "focus" as NavButtonKey },
+  { href: "/history", label: "History", icon: History, soundKey: "history" as NavButtonKey },
+  { href: "/analytics", label: "Analytics", icon: BarChart3, soundKey: "analytics" as NavButtonKey },
 ];
 
 export function TopNav() {
@@ -40,7 +42,8 @@ export function TopNav() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const timerStatus = useTimerStore((s) => s.status);
   const visible = useAutoHide(timerStatus === "running");
-  const { click } = useAppSounds();
+  const navSounds = useSoundSettings((s) => s.navSounds);
+  const playNav = (key: NavButtonKey) => playSound(getSoundDef(navSounds[key]));
 
   const handleSignOut = async () => {
     const supabase = createClient();
@@ -57,11 +60,11 @@ export function TopNav() {
         )}
       >
         <div className="flex items-center gap-1 rounded-full border border-border/50 bg-muted backdrop-blur-xl px-2 py-2">
-          {links.map(({ href, label, icon: Icon }) => (
+          {links.map(({ href, label, icon: Icon, soundKey }) => (
             <Tooltip key={href}>
               <TooltipTrigger
                 render={<Link href={href} />}
-                onClick={() => click()}
+                onClick={() => playNav(soundKey)}
                 className={cn(
                   "rounded-full p-2 transition-colors",
                   pathname === href
@@ -83,7 +86,7 @@ export function TopNav() {
           <Tooltip>
             <TooltipTrigger
               onClick={() => {
-                click();
+                playNav('settings');
                 setSettingsOpen(true);
               }}
               className="rounded-full p-2.5 text-muted-foreground transition-colors hover:text-foreground"
@@ -97,7 +100,7 @@ export function TopNav() {
           <Tooltip>
             <TooltipTrigger
               onClick={() => {
-                click();
+                playNav('theme');
                 toggle();
               }}
               className="rounded-full p-2.5 text-muted-foreground transition-colors hover:text-foreground"
@@ -115,7 +118,7 @@ export function TopNav() {
           <Tooltip>
             <TooltipTrigger
               onClick={() => {
-                click();
+                playNav('signOut');
                 handleSignOut();
               }}
               className="rounded-full p-2.5 text-muted-foreground transition-colors hover:text-foreground"
