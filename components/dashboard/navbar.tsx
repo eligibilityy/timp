@@ -63,14 +63,19 @@ export function TopNav() {
   useEffect(() => {
     if (!user) return;
     const supabase = createClient();
-    supabase
-      .from("profiles")
-      .select("display_name, avatar_url, role")
-      .eq("id", user.id)
-      .single()
-      .then(({ data }) => {
-        if (data) setProfile(data);
-      });
+    const fetchProfile = () => {
+      supabase
+        .from("profiles")
+        .select("display_name, avatar_url, role")
+        .eq("id", user.id)
+        .single()
+        .then(({ data }) => {
+          if (data) setProfile(data);
+        });
+    };
+    fetchProfile();
+    window.addEventListener("profile-updated", fetchProfile);
+    return () => window.removeEventListener("profile-updated", fetchProfile);
   }, [user]);
 
   const handleSignOut = async () => {

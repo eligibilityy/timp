@@ -386,9 +386,15 @@ function ProfileSection({ userId, email }: { userId: string; email: string }) {
         return;
       }
       const { data } = supabase.storage.from("avatars").getPublicUrl(path);
-      setAvatarUrl(data.publicUrl);
+      const newUrl = data.publicUrl;
+      setAvatarUrl(newUrl);
+      await supabase.from("profiles").upsert({
+        id: userId,
+        avatar_url: newUrl,
+      });
       playSound(success);
       toast("Avatar uploaded");
+      window.dispatchEvent(new Event("profile-updated"));
     },
   });
 
@@ -421,6 +427,7 @@ function ProfileSection({ userId, email }: { userId: string; email: string }) {
     else {
       playSound(success);
       toast("Profile saved");
+      window.dispatchEvent(new Event("profile-updated"));
     }
   };
 
