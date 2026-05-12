@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { Clock, Star } from "lucide-react";
+import { DeleteSessionButton } from "@/components/session/delete-session-button";
 
 interface SessionRow {
   id: string;
@@ -88,7 +89,7 @@ export default async function HistoryPage() {
                   return (
                     <div key={session.id} className="relative group">
                       {/* Timeline dot */}
-                      <div className="absolute -left-7.5 top-2 size-2.5 rounded-full bg-foreground/20 group-hover:bg-foreground/60 transition-colors ring-2 ring-background" />
+                      <div className="absolute -left-7 top-2 size-2 rounded-full bg-muted group-hover:bg-foreground/60 transition-colors ring-2 ring-background" />
 
                       {/* Card */}
                       <div className="rounded-2xl bg-secondary shadow-sm p-4 hover:shadow-md transition-shadow">
@@ -103,12 +104,35 @@ export default async function HistoryPage() {
                               </p>
                             )}
                           </div>
-                          {session.focus_score && (
-                            <div className="flex items-center gap-0.5 text-xs font-medium text-amber-500 dark:text-amber-400 shrink-0">
-                              <Star className="size-3 fill-current" />
-                              {session.focus_score}
-                            </div>
-                          )}
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            {session.focus_score && (
+                              <div className="flex items-center gap-0.5 text-xs font-medium text-amber-500 dark:text-amber-400">
+                                <Star className="size-3 fill-current" />
+                                {session.focus_score}
+                              </div>
+                            )}
+                            <DeleteSessionButton
+                              session={{
+                                id: session.id,
+                                user_id: user!.id,
+                                title: session.title,
+                                reflection: session.reflection,
+                                duration_seconds: session.duration_seconds,
+                                focus_score: session.focus_score,
+                                started_at: session.started_at,
+                                ended_at: (
+                                  session as unknown as {
+                                    ended_at: string | null;
+                                  }
+                                ).ended_at,
+                                created_at: session.created_at,
+                                tagIds:
+                                  session.session_tags?.map(
+                                    (st) => st.tag_id,
+                                  ) ?? [],
+                              }}
+                            />
+                          </div>
                         </div>
 
                         {/* Meta row */}

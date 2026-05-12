@@ -4,6 +4,20 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { ProductivityGraph } from "@/components/heatmap/productivity-graph";
 import { Flame, Clock, Calendar, TrendingUp } from "lucide-react";
+import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/components/ui/chart";
 
 interface DayData {
   day: string;
@@ -15,6 +29,13 @@ interface TagData {
   minutes: number;
   color: string;
 }
+
+const chartConfig = {
+  minutes: {
+    label: "Minutes",
+    color: "var(--chart-1)",
+  },
+} satisfies ChartConfig;
 
 export default function AnalyticsPage() {
   const [weekData, setWeekData] = useState<DayData[]>([]);
@@ -119,125 +140,134 @@ export default function AnalyticsPage() {
   }, []);
 
   const weekTotal = weekData.reduce((s, d) => s + d.minutes, 0);
-  const maxMinutes = Math.max(...weekData.map((d) => d.minutes), 1);
 
   return (
-    <div className="space-y-8">
-      <h1 className="text-2xl font-semibold tracking-tight">Analytics</h1>
+    <div>
+      <h1 className="text-2xl font-semibold tracking-tight mb-8">Analytics</h1>
 
-      {/* Stats row */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <StatCard
-          icon={<Flame className="size-4" />}
-          label="Streak"
-          value={`${streak}d`}
-        />
-        <StatCard
-          icon={<Clock className="size-4" />}
-          label="Total focus"
-          value={`${Math.round(totalMinutes / 60)}h`}
-        />
-        <StatCard
-          icon={<Calendar className="size-4" />}
-          label="Sessions"
-          value={String(totalSessions)}
-        />
-        <StatCard
-          icon={<TrendingUp className="size-4" />}
-          label="This week"
-          value={`${weekTotal}m`}
-        />
-      </div>
+      <div className="space-y-2">
+        {/* Stats row */}
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <StatCard
+            icon={<Flame className="size-6 stroke-2 fill-white text-white" />}
+            iconBgClassName="bg-orange-300 dark:bg-orange-400"
+            label="Streak"
+            value={`${streak} ${streak === 1 ? "day" : "days"}`}
+          />
+          <StatCard
+            icon={<Clock className="size-6 stroke-2 text-white" />}
+            iconBgClassName="bg-blue-400"
+            label="Total focus"
+            value={`${Math.round(totalMinutes / 60)} ${Math.round(totalMinutes / 60) === 1 ? "hour" : "hours"}`}
+          />
+          <StatCard
+            icon={<Calendar className="size-6 stroke-2 text-white" />}
+            iconBgClassName="bg-purple-400"
+            label="Sessions"
+            value={`${totalSessions} ${totalSessions === 1 ? "session" : "sessions"}`}
+          />
+          <StatCard
+            icon={
+              <TrendingUp className="size-6 stroke-2 fill-white text-white" />
+            }
+            iconBgClassName="bg-emerald-400"
+            label="This week"
+            value={`${weekTotal} minutes`}
+          />
+        </div>
 
-      {/* Productivity Graph */}
-      <div className="space-y-3">
-        <h2 className="text-sm font-medium text-muted-foreground">
-          Productivity over the last year
-        </h2>
+        {/* Productivity Graph */}
         <ProductivityGraph data={heatmapData} />
+
+        {/* Weekly activity + Tags side by side */}
+        {weekData.length > 0 && (
+          <div className="grid gap-2 md:grid-cols-2">
+            {/* Weekly bar chart */}
+            <Card className="justify-between">
+              <CardHeader>
+                <CardTitle>Focus this week</CardTitle>
+                <CardDescription>
+                  You have focused for {weekTotal} minutes this week.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ChartContainer config={chartConfig}>
+                  <BarChart accessibilityLayer data={weekData}>
+                    <CartesianGrid vertical={false} />
+                    <XAxis
+                      dataKey="label"
+                      tickLine={false}
+                      tickMargin={10}
+                      axisLine={false}
+                    />
+                    <ChartTooltip
+                      cursor={false}
+                      content={<ChartTooltipContent hideLabel className="animate-in fade-in-0 duration-150" />}
+                    />
+                    <Bar
+                      dataKey="minutes"
+                      fill="var(--color-minutes)"
+                      radius={8}
+                    />
+                  </BarChart>
+                </ChartContainer>
+              </CardContent>
+            </Card>
+
+            {/* Tag distribution */}
+            {tagData.length > 0 && (
+              <Card className="justify-between">
+                <CardHeader>
+                  <CardTitle>Focus by category</CardTitle>
+                  <CardDescription>
+                    How your time was distributed this week.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {tagData.map((tag) => (
+                    <div key={tag.name} className="flex items-center gap-3">
+                      <div
+                        className="size-3 rounded-full shrink-0"
+                        style={{ backgroundColor: tag.color }}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-baseline mb-1.5">
+                          <span className="text-sm font-medium truncate">
+                            {tag.name}
+                          </span>
+                          <span className="text-xs text-muted-foreground tabular-nums ml-2">
+                            {tag.minutes} min
+                          </span>
+                        </div>
+                        <div className="h-2 rounded-full bg-muted overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all"
+                            style={{
+                              width: `${(tag.minutes / tagData[0].minutes) * 100}%`,
+                              backgroundColor: tag.color,
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
+
+        {weekData.length === 0 && Object.keys(heatmapData).length === 0 && (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="size-12 rounded-full bg-muted flex items-center justify-center mb-4">
+              <TrendingUp className="size-5 text-muted-foreground" />
+            </div>
+            <p className="text-muted-foreground">
+              Complete some focus sessions to see your analytics here.
+            </p>
+          </div>
+        )}
       </div>
-
-      {/* Weekly activity + Tags side by side */}
-      {weekData.length > 0 && (
-        <div className="grid gap-6 md:grid-cols-2">
-          {/* Weekly bar chart */}
-          <div className="rounded-2xl bg-secondary shadow-sm p-4 space-y-4">
-            <div className="flex items-baseline justify-between">
-              <h2 className="text-sm font-medium">This week</h2>
-              <span className="text-xs text-muted-foreground tabular-nums">
-                {weekTotal} min
-              </span>
-            </div>
-            <div className="flex items-end gap-2 h-28">
-              {weekData.map((d) => {
-                const height = (d.minutes / maxMinutes) * 100;
-                const isToday =
-                  d.day === new Date().toISOString().split("T")[0];
-                return (
-                  <div
-                    key={d.day}
-                    className="flex flex-1 flex-col items-center gap-1.5"
-                  >
-                    <div className="w-full flex flex-col justify-end h-20">
-                      <div
-                        className={`w-full rounded-md transition-all ${isToday ? "bg-foreground" : "bg-foreground/25"}`}
-                        style={{
-                          height: `${height}%`,
-                          minHeight: d.minutes > 0 ? "4px" : "0",
-                        }}
-                      />
-                    </div>
-                    <span
-                      className={`text-[10px] ${isToday ? "text-foreground font-medium" : "text-muted-foreground"}`}
-                    >
-                      {d.label}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Tag distribution */}
-          {tagData.length > 0 && (
-            <div className="rounded-2xl bg-secondary shadow-sm p-4 space-y-4">
-              <h2 className="text-sm font-medium">Focus by category</h2>
-              <div className="space-y-3">
-                {tagData.map((tag) => (
-                  <div key={tag.name} className="space-y-1.5">
-                    <div className="flex justify-between text-xs">
-                      <span className="font-medium">{tag.name}</span>
-                      <span className="text-muted-foreground tabular-nums">
-                        {tag.minutes}m
-                      </span>
-                    </div>
-                    <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all"
-                        style={{
-                          width: `${(tag.minutes / tagData[0].minutes) * 100}%`,
-                          backgroundColor: tag.color,
-                        }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {weekData.length === 0 && Object.keys(heatmapData).length === 0 && (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="size-12 rounded-full bg-muted flex items-center justify-center mb-4">
-            <TrendingUp className="size-5 text-muted-foreground" />
-          </div>
-          <p className="text-muted-foreground">
-            Complete some focus sessions to see your analytics here.
-          </p>
-        </div>
-      )}
     </div>
   );
 }
@@ -246,20 +276,28 @@ function StatCard({
   icon,
   label,
   value,
+  iconBgClassName = "bg-muted-foreground/20",
 }: {
   icon: React.ReactNode;
   label: string;
   value: string;
+  iconBgClassName?: string;
 }) {
   return (
-    <div className="rounded-2xl bg-secondary shadow-sm p-4 space-y-2">
-      <div className="flex items-center gap-1.5 text-muted-foreground">
-        {icon}
-        <span className="text-xs">{label}</span>
-      </div>
-      <p className="text-2xl font-semibold tabular-nums tracking-tight">
-        {value}
-      </p>
-    </div>
+    <Card className="w-full max-w-sm">
+      <CardContent className="flex flex-col items-center justify-center gap-2">
+        <div
+          className={`${iconBgClassName} size-10 rounded-full flex items-center justify-center`}
+        >
+          {icon}
+        </div>
+        <div className="flex flex-col items-center">
+          <p className="text-xl font-medium tabular-nums tracking-tight">
+            {value}
+          </p>
+          <span className="text-sm text-muted-foreground">{label}</span>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

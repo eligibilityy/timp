@@ -65,3 +65,44 @@ export async function createTag(name: string, color: string) {
   if (error) throw error
   return data
 }
+
+
+
+export async function deleteSession(id: string) {
+  const supabase = createClient()
+  const { error } = await supabase.from('sessions').delete().eq('id', id)
+  if (error) throw error
+}
+
+export async function restoreSession(data: {
+  id: string
+  user_id: string
+  title: string | null
+  reflection: string | null
+  duration_seconds: number
+  focus_score: number | null
+  started_at: string | null
+  ended_at: string | null
+  created_at: string
+  tagIds: string[]
+}) {
+  const supabase = createClient()
+  const { error } = await supabase.from('sessions').insert({
+    id: data.id,
+    user_id: data.user_id,
+    title: data.title,
+    reflection: data.reflection,
+    duration_seconds: data.duration_seconds,
+    focus_score: data.focus_score,
+    started_at: data.started_at,
+    ended_at: data.ended_at,
+    created_at: data.created_at,
+  })
+  if (error) throw error
+
+  if (data.tagIds.length > 0) {
+    await supabase
+      .from('session_tags')
+      .insert(data.tagIds.map((tag_id) => ({ session_id: data.id, tag_id })))
+  }
+}

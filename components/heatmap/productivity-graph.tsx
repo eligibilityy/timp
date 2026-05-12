@@ -6,13 +6,15 @@ import {
   TooltipContent,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 
 interface ProductivityGraphProps {
   data: Record<string, number>; // { 'YYYY-MM-DD': minutes }
 }
 
 function getIntensity(minutes: number): string {
-  if (minutes === 0) return "bg-muted";
+  if (minutes === 0)
+    return "bg-muted-foreground/10 dark:bg-muted-foreground/20";
   if (minutes < 30) return "bg-blue-200 dark:bg-blue-900";
   if (minutes < 60) return "bg-blue-300 dark:bg-blue-700";
   if (minutes < 120) return "bg-blue-500 dark:bg-blue-500";
@@ -57,63 +59,73 @@ export function ProductivityGraph({ data }: ProductivityGraphProps) {
   });
 
   return (
-    <div className="overflow-x-auto">
-      <div className="inline-block">
-        {/* Month labels */}
-        <div className="flex text-xs text-muted-foreground mb-1 ml-8">
-          {months.map((m, i) => (
-            <span
-              key={i}
-              className="absolute"
-              style={{ marginLeft: `${m.col * 14}px` }}
-            >
-              {m.label}
-            </span>
-          ))}
-        </div>
-        <div className="flex gap-0.75 mt-5">
-          {/* Day labels */}
-          <div className="flex flex-col gap-0.75 text-[10px] text-muted-foreground pr-1">
-            <span className="h-2.75" />
-            <span className="h-2.75 leading-2.75">Mon</span>
-            <span className="h-2.75" />
-            <span className="h-2.75 leading-2.75">Wed</span>
-            <span className="h-2.75" />
-            <span className="h-2.75 leading-2.75">Fri</span>
-            <span className="h-2.75" />
-          </div>
-          {/* Grid */}
-          {weeks.map((week, wi) => (
-            <div key={wi} className="flex flex-col gap-0.75">
-              {week.map((day) => (
-                <Tooltip key={day.key}>
-                  <TooltipTrigger
-                    className={cn(
-                      "size-2.75 rounded-xs transition-colors",
-                      getIntensity(day.minutes),
-                    )}
-                  />
-                  <TooltipContent className="select-none pointer-events-none">
-                    {day.minutes > 0
-                      ? `${day.minutes} min on ${day.date.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`
-                      : `No activity on ${day.date.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`}
-                  </TooltipContent>
-                </Tooltip>
+    <Card>
+      <CardHeader>
+        <CardTitle>Productivity over the last year</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="overflow-x-auto">
+          <div className="inline-block">
+            {/* Month labels */}
+            <div className="relative h-4 text-xs text-muted-foreground mb-1 ml-8">
+              {months.map((m, i) => (
+                <span
+                  key={i}
+                  className="absolute"
+                  style={{ left: `${m.col * 14}px` }}
+                >
+                  {m.label}
+                </span>
               ))}
             </div>
-          ))}
+            <div className="flex gap-0.75">
+              {/* Day labels */}
+              <div className="flex flex-col gap-0.75 text-[10px] text-muted-foreground pr-1">
+                <span className="h-2.75" />
+                <span className="h-2.75 leading-2.75">Mon</span>
+                <span className="h-2.75" />
+                <span className="h-2.75 leading-2.75">Wed</span>
+                <span className="h-2.75" />
+                <span className="h-2.75 leading-2.75">Fri</span>
+                <span className="h-2.75" />
+              </div>
+              {/* Grid */}
+              {weeks.map((week, wi) => (
+                <div key={wi} className="flex flex-col gap-0.75">
+                  {week.map((day) => (
+                    <Tooltip key={day.key}>
+                      <TooltipTrigger
+                        className={cn(
+                          "size-2.75 rounded-xs transition-colors",
+                          getIntensity(day.minutes),
+                        )}
+                      />
+                      <TooltipContent
+                        sideOffset={8}
+                        className="select-none pointer-events-none"
+                      >
+                        {day.minutes > 0
+                          ? `${day.minutes} min on ${day.date.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`
+                          : `No activity on ${day.date.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`}
+                      </TooltipContent>
+                    </Tooltip>
+                  ))}
+                </div>
+              ))}
+            </div>
+            {/* Legend */}
+            <div className="flex items-center gap-1 mt-2 ml-8 text-[10px] text-muted-foreground">
+              <span>Less</span>
+              <div className="size-2.75 rounded-xs bg-muted" />
+              <div className="size-2.75 rounded-xs bg-blue-200 dark:bg-blue-900" />
+              <div className="size-2.75 rounded-xs bg-blue-300 dark:bg-blue-700" />
+              <div className="size-2.75 rounded-xs bg-blue-500 dark:bg-blue-500" />
+              <div className="size-2.75 rounded-xs bg-blue-700 dark:bg-blue-300" />
+              <span>More</span>
+            </div>
+          </div>
         </div>
-        {/* Legend */}
-        <div className="flex items-center gap-1 mt-2 ml-8 text-[10px] text-muted-foreground">
-          <span>Less</span>
-          <div className="size-2.75 rounded-xs   bg-muted" />
-          <div className="size-2.75 rounded-xs   bg-blue-200 dark:bg-blue-900" />
-          <div className="size-2.75 rounded-xs   bg-blue-300 dark:bg-blue-700" />
-          <div className="size-2.75 rounded-xs   bg-blue-500 dark:bg-blue-500" />
-          <div className="size-2.75 rounded-xs   bg-blue-700 dark:bg-blue-300" />
-          <span>More</span>
-        </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
